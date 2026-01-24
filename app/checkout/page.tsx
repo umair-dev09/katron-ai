@@ -2,11 +2,15 @@
 
 import { Suspense } from "react"
 import CheckoutPageContent from "@/components/checkout/checkout-page-content"
+import { ProtectedGuard } from "@/components/auth/auth-guard"
+import { PageLoader } from "@/components/ui/page-loader"
 
 export default function CheckoutPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-background" />}>
-      <CheckoutPageContent />
-    </Suspense>
+    <ProtectedGuard>
+      <Suspense fallback={<PageLoader message="Loading checkout..." />}>
+        <CheckoutPageContent />
+      </Suspense>
+    </ProtectedGuard>
   )
 }

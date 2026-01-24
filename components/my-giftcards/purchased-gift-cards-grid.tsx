@@ -1,113 +1,39 @@
 "use client"
 
+import { PackageX, RefreshCw, ShoppingBag } from "lucide-react"
+import { useRouter } from "next/navigation"
 import PurchasedGiftCardItem from "./purchased-gift-card-item"
 import { Skeleton } from "@/components/ui/skeleton"
-
-const PURCHASED_GIFT_CARDS = [
-  {
-    id: 1,
-    name: "Amazon",
-    description: "Shop anything from electronics to books",
-    bgColor: "bg-yellow-400",
-    logo: "🛍️",
-    purchaseDate: "Dec 15, 2025",
-    amount: "50",
-    status: "completed" as const,
-    payarcTransactionId: "PAYARC-2025-AMZ-001",
-    reloadlyTransactionId: "RELOADLY-AMZ-7891234",
-  },
-  {
-    id: 2,
-    name: "Spotify",
-    description: "Stream millions of songs and podcasts",
-    bgColor: "bg-green-500",
-    logo: "🎵",
-    purchaseDate: "Dec 10, 2025",
-    amount: "25",
-    status: "pending" as const,
-    payarcTransactionId: "PAYARC-2025-SPT-002",
-    reloadlyTransactionId: "RELOADLY-SPT-7891235",
-  },
-  {
-    id: 3,
-    name: "Netflix",
-    description: "Watch movies, series, and documentaries",
-    bgColor: "bg-red-600",
-    logo: "🎬",
-    purchaseDate: "Dec 5, 2025",
-    amount: "100",
-    status: "completed" as const,
-    payarcTransactionId: "PAYARC-2025-NFX-003",
-    reloadlyTransactionId: "RELOADLY-NFX-7891236",
-  },
-  {
-    id: 4,
-    name: "Cleartrip",
-    description: "Book flights and hotels at great rates",
-    bgColor: "bg-orange-500",
-    logo: "✈️",
-    purchaseDate: "Nov 28, 2025",
-    amount: "150",
-    status: "failed" as const,
-    payarcTransactionId: "PAYARC-2025-CLT-004",
-    reloadlyTransactionId: "RELOADLY-CLT-7891237",
-  },
-  {
-    id: 5,
-    name: "Uber Eats",
-    description: "Order food from your favorite restaurants",
-    bgColor: "bg-black",
-    logo: "🍔",
-    purchaseDate: "Nov 20, 2025",
-    amount: "50",
-    status: "completed" as const,
-    payarcTransactionId: "PAYARC-2025-UBR-005",
-    reloadlyTransactionId: "RELOADLY-UBR-7891238",
-  },
-  {
-    id: 6,
-    name: "Swiggy",
-    description: "Food delivery at your doorstep",
-    bgColor: "bg-orange-600",
-    logo: "🚚",
-    purchaseDate: "Nov 15, 2025",
-    amount: "75",
-    status: "completed" as const,
-    payarcTransactionId: "PAYARC-2025-SWG-006",
-    reloadlyTransactionId: "RELOADLY-SWG-7891239",
-  },
-  {
-    id: 7,
-    name: "Zomato",
-    description: "Discover the best food experiences",
-    bgColor: "bg-red-500",
-    logo: "🍽️",
-    purchaseDate: "Nov 10, 2025",
-    amount: "50",
-    status: "pending" as const,
-    payarcTransactionId: "PAYARC-2025-ZMT-007",
-    reloadlyTransactionId: "RELOADLY-ZMT-7891240",
-  },
-  {
-    id: 8,
-    name: "Booking.com",
-    description: "Find hotels and accommodations worldwide",
-    bgColor: "bg-blue-500",
-    logo: "🏨",
-    purchaseDate: "Nov 1, 2025",
-    amount: "200",
-    status: "completed" as const,
-    payarcTransactionId: "PAYARC-2025-BKG-008",
-    reloadlyTransactionId: "RELOADLY-BKG-7891241",
-  },
-]
+import { Button } from "@/components/ui/button"
+import {
+  type GiftCardOrder,
+  filterOrders,
+  filterOrdersByStatus,
+  sortOrdersByDate,
+} from "@/lib/api/orders"
 
 interface PurchasedGiftCardsGridProps {
+  orders: GiftCardOrder[]
   isLoading: boolean
   searchTerm: string
+  statusFilter: string
+  error: string | null
+  onRetry: () => void
+  onOrderUpdated: (order: GiftCardOrder) => void
 }
 
-export default function PurchasedGiftCardsGrid({ isLoading, searchTerm }: PurchasedGiftCardsGridProps) {
+export default function PurchasedGiftCardsGrid({ 
+  orders,
+  isLoading, 
+  searchTerm,
+  statusFilter,
+  error,
+  onRetry,
+  onOrderUpdated
+}: PurchasedGiftCardsGridProps) {
+  const router = useRouter()
+
+  // Loading state
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -125,40 +51,103 @@ export default function PurchasedGiftCardsGrid({ isLoading, searchTerm }: Purcha
     )
   }
 
-  const filteredCards = PURCHASED_GIFT_CARDS.filter(
-    (card) =>
-      card.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      card.description.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  // Error state
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="bg-red-50 dark:bg-red-900/10 rounded-full p-4 mb-4">
+          <PackageX className="w-8 h-8 text-red-500" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Failed to Load Orders</h3>
+        <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">{error}</p>
+        <Button onClick={onRetry} variant="outline">
+          <RefreshCw className="w-4 h-4 mr-2" />
+          Try Again
+        </Button>
+      </div>
+    )
+  }
+
+  // Filter and sort orders
+  let filteredCards = filterOrders(orders, searchTerm)
+  filteredCards = filterOrdersByStatus(filteredCards, statusFilter)
+  filteredCards = sortOrdersByDate(filteredCards)
+
+  // Empty state - no orders at all
+  if (orders.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="bg-gray-100 dark:bg-gray-900/30 rounded-full p-4 mb-4">
+          <ShoppingBag className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">No Orders Yet</h3>
+        <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
+          You haven't purchased any gift cards yet. Explore our collection and find the perfect gift!
+        </p>
+        <Button onClick={() => router.push("/buy")}>
+          <ShoppingBag className="w-4 h-4 mr-2" />
+          Browse Gift Cards
+        </Button>
+      </div>
+    )
+  }
+
+  // Empty state - no matching results
+  if (filteredCards.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 px-4">
+        <div className="bg-gray-100 dark:bg-gray-900/30 rounded-full p-4 mb-4">
+          <PackageX className="w-8 h-8 text-muted-foreground" />
+        </div>
+        <h3 className="text-lg font-semibold text-foreground mb-2">No Results Found</h3>
+        <p className="text-sm text-muted-foreground text-center mb-6 max-w-md">
+          {searchTerm 
+            ? `No orders matching "${searchTerm}" were found.`
+            : statusFilter !== "all"
+              ? `No ${statusFilter.toLowerCase()} orders found.`
+              : "No orders match your current filters."
+          }
+        </p>
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            // This will trigger parent to reset filters
+            onRetry()
+          }}
+        >
+          Clear Filters
+        </Button>
+      </div>
+    )
+  }
 
   return (
     <div>
-      {filteredCards.length > 0 ? (
-        <>
-          {/* Results Count */}
-          <div className="mb-6">
-            <p className="text-sm text-muted-foreground">
-              Showing <span className="font-semibold text-foreground">{filteredCards.length}</span> gift card
-              {filteredCards.length !== 1 ? "s" : ""}
-            </p>
-          </div>
+      {/* Results Count */}
+      <div className="mb-6">
+        <p className="text-sm text-muted-foreground">
+          Showing <span className="font-semibold text-foreground">{filteredCards.length}</span> of{" "}
+          <span className="font-semibold text-foreground">{orders.length}</span> order
+          {orders.length !== 1 ? "s" : ""}
+          {searchTerm && (
+            <span> matching "<span className="font-medium">{searchTerm}</span>"</span>
+          )}
+          {statusFilter !== "all" && (
+            <span> with status "<span className="font-medium capitalize">{statusFilter}</span>"</span>
+          )}
+        </p>
+      </div>
 
-          {/* Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredCards.map((card) => (
-              <PurchasedGiftCardItem key={card.id} card={card} />
-            ))}
-          </div>
-        </>
-      ) : (
-        <div className="flex flex-col items-center justify-center py-16 text-center">
-          <div className="text-6xl mb-4">🎁</div>
-          <p className="text-muted-foreground text-lg mb-2">No gift cards found</p>
-          <p className="text-muted-foreground text-sm">
-            {searchTerm ? "Try adjusting your search" : "You haven't purchased any gift cards yet"}
-          </p>
-        </div>
-      )}
+      {/* Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {filteredCards.map((order) => (
+          <PurchasedGiftCardItem 
+            key={order.id} 
+            card={order}
+            onOrderUpdated={onOrderUpdated}
+          />
+        ))}
+      </div>
     </div>
   )
 }

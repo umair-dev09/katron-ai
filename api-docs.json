@@ -1,0 +1,1583 @@
+﻿{
+    "openapi":  "3.0.1",
+    "info":  {
+                 "title":  "Katron AI Gift Card API Documentation",
+                 "version":  "1.0"
+             },
+    "servers":  [
+                    {
+                        "url":  "https://api.ktngiftcard.katronai.com/katron-gift-card",
+                        "description":  "Generated server url"
+                    }
+                ],
+    "security":  [
+                     {
+                         "BearerAuth":  [
+
+                                        ]
+                     }
+                 ],
+    "paths":  {
+                  "/api/user/uploadGenericFile":  {
+                                                      "post":  {
+                                                                   "tags":  [
+                                                                                "user-controller"
+                                                                            ],
+                                                                   "operationId":  "uploadGenericFile",
+                                                                   "parameters":  [
+                                                                                      {
+                                                                                          "name":  "folderName",
+                                                                                          "in":  "query",
+                                                                                          "required":  true,
+                                                                                          "schema":  {
+                                                                                                         "type":  "string"
+                                                                                                     }
+                                                                                      },
+                                                                                      {
+                                                                                          "name":  "fileName",
+                                                                                          "in":  "query",
+                                                                                          "required":  true,
+                                                                                          "schema":  {
+                                                                                                         "type":  "string"
+                                                                                                     }
+                                                                                      }
+                                                                                  ],
+                                                                   "requestBody":  {
+                                                                                       "content":  {
+                                                                                                       "multipart/form-data":  {
+                                                                                                                                   "schema":  {
+                                                                                                                                                  "required":  [
+                                                                                                                                                                   "file"
+                                                                                                                                                               ],
+                                                                                                                                                  "type":  "object",
+                                                                                                                                                  "properties":  {
+                                                                                                                                                                     "file":  {
+                                                                                                                                                                                  "type":  "string",
+                                                                                                                                                                                  "format":  "binary"
+                                                                                                                                                                              }
+                                                                                                                                                                 }
+                                                                                                                                              }
+                                                                                                                               }
+                                                                                                   },
+                                                                                       "required":  true
+                                                                                   },
+                                                                   "responses":  {
+                                                                                     "200":  {
+                                                                                                 "description":  "OK",
+                                                                                                 "content":  {
+                                                                                                                 "*/*":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "$ref":  "#/components/schemas/Response"
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                                             }
+                                                                                             }
+                                                                                 }
+                                                               }
+                                                  },
+                  "/api/user/updateUserPhoto":  {
+                                                    "post":  {
+                                                                 "tags":  [
+                                                                              "user-controller"
+                                                                          ],
+                                                                 "operationId":  "updateUserPhoto",
+                                                                 "parameters":  [
+                                                                                    {
+                                                                                        "name":  "photo",
+                                                                                        "in":  "query",
+                                                                                        "required":  true,
+                                                                                        "schema":  {
+                                                                                                       "type":  "string"
+                                                                                                   }
+                                                                                    }
+                                                                                ],
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/Response"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             }
+                                                },
+                  "/api/user/updateUserLatLng":  {
+                                                     "post":  {
+                                                                  "tags":  [
+                                                                               "user-controller"
+                                                                           ],
+                                                                  "operationId":  "updateUserLatLng",
+                                                                  "parameters":  [
+                                                                                     {
+                                                                                         "name":  "location",
+                                                                                         "in":  "query",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "string"
+                                                                                                    }
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "lat",
+                                                                                         "in":  "query",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "number",
+                                                                                                        "format":  "double"
+                                                                                                    }
+                                                                                     },
+                                                                                     {
+                                                                                         "name":  "lng",
+                                                                                         "in":  "query",
+                                                                                         "required":  true,
+                                                                                         "schema":  {
+                                                                                                        "type":  "number",
+                                                                                                        "format":  "double"
+                                                                                                    }
+                                                                                     }
+                                                                                 ],
+                                                                  "responses":  {
+                                                                                    "200":  {
+                                                                                                "description":  "OK",
+                                                                                                "content":  {
+                                                                                                                "*/*":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "$ref":  "#/components/schemas/Response"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                                            }
+                                                                                            }
+                                                                                }
+                                                              }
+                                                 },
+                  "/api/user/updateUserInformation":  {
+                                                          "post":  {
+                                                                       "tags":  [
+                                                                                    "user-controller"
+                                                                                ],
+                                                                       "operationId":  "updateUserInformation",
+                                                                       "requestBody":  {
+                                                                                           "content":  {
+                                                                                                           "application/json":  {
+                                                                                                                                    "schema":  {
+                                                                                                                                                   "$ref":  "#/components/schemas/UpdateUserModel"
+                                                                                                                                               }
+                                                                                                                                }
+                                                                                                       },
+                                                                                           "required":  true
+                                                                                       },
+                                                                       "responses":  {
+                                                                                         "200":  {
+                                                                                                     "description":  "OK",
+                                                                                                     "content":  {
+                                                                                                                     "*/*":  {
+                                                                                                                                 "schema":  {
+                                                                                                                                                "$ref":  "#/components/schemas/Response"
+                                                                                                                                            }
+                                                                                                                             }
+                                                                                                                 }
+                                                                                                 }
+                                                                                     }
+                                                                   }
+                                                      },
+                  "/api/user/updateUserAddress":  {
+                                                      "post":  {
+                                                                   "tags":  [
+                                                                                "user-controller"
+                                                                            ],
+                                                                   "operationId":  "updateUserAddress",
+                                                                   "requestBody":  {
+                                                                                       "content":  {
+                                                                                                       "application/json":  {
+                                                                                                                                "schema":  {
+                                                                                                                                               "$ref":  "#/components/schemas/RegisterAddressModel"
+                                                                                                                                           }
+                                                                                                                            }
+                                                                                                   },
+                                                                                       "required":  true
+                                                                                   },
+                                                                   "responses":  {
+                                                                                     "200":  {
+                                                                                                 "description":  "OK",
+                                                                                                 "content":  {
+                                                                                                                 "*/*":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "$ref":  "#/components/schemas/Response"
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                                             }
+                                                                                             }
+                                                                                 }
+                                                               }
+                                                  },
+                  "/api/user/payArcWebhook":  {
+                                                  "post":  {
+                                                               "tags":  [
+                                                                            "user-controller"
+                                                                        ],
+                                                               "operationId":  "payArcWebhook",
+                                                               "requestBody":  {
+                                                                                   "content":  {
+                                                                                                   "application/json":  {
+                                                                                                                            "schema":  {
+                                                                                                                                           "type":  "string"
+                                                                                                                                       }
+                                                                                                                        }
+                                                                                               },
+                                                                                   "required":  true
+                                                                               },
+                                                               "responses":  {
+                                                                                 "200":  {
+                                                                                             "description":  "OK",
+                                                                                             "content":  {
+                                                                                                             "*/*":  {
+                                                                                                                         "schema":  {
+                                                                                                                                        "type":  "string"
+                                                                                                                                    }
+                                                                                                                     }
+                                                                                                         }
+                                                                                         }
+                                                                             }
+                                                           }
+                                              },
+                  "/api/user/changePassword":  {
+                                                   "post":  {
+                                                                "tags":  [
+                                                                             "user-controller"
+                                                                         ],
+                                                                "operationId":  "changePassword",
+                                                                "parameters":  [
+                                                                                   {
+                                                                                       "name":  "oldPassword",
+                                                                                       "in":  "query",
+                                                                                       "required":  true,
+                                                                                       "schema":  {
+                                                                                                      "type":  "string"
+                                                                                                  }
+                                                                                   },
+                                                                                   {
+                                                                                       "name":  "newPassword",
+                                                                                       "in":  "query",
+                                                                                       "required":  true,
+                                                                                       "schema":  {
+                                                                                                      "type":  "string"
+                                                                                                  }
+                                                                                   },
+                                                                                   {
+                                                                                       "name":  "confirmPassword",
+                                                                                       "in":  "query",
+                                                                                       "required":  true,
+                                                                                       "schema":  {
+                                                                                                      "type":  "string"
+                                                                                                  }
+                                                                                   }
+                                                                               ],
+                                                                "responses":  {
+                                                                                  "200":  {
+                                                                                              "description":  "OK",
+                                                                                              "content":  {
+                                                                                                              "*/*":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/Response"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                                          }
+                                                                                          }
+                                                                              }
+                                                            }
+                                               },
+                  "/api/user/addCardToPayArc":  {
+                                                    "post":  {
+                                                                 "tags":  [
+                                                                              "user-controller"
+                                                                          ],
+                                                                 "operationId":  "addCardToPayArc",
+                                                                 "requestBody":  {
+                                                                                     "content":  {
+                                                                                                     "application/json":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "$ref":  "#/components/schemas/CardCreateRequestModel"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                 },
+                                                                                     "required":  true
+                                                                                 },
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/Response"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             }
+                                                },
+                  "/api/giftCards/purchaseGiftCardByMerchant":  {
+                                                                    "post":  {
+                                                                                 "tags":  [
+                                                                                              "gift-card-controller"
+                                                                                          ],
+                                                                                 "operationId":  "purchaseGiftCardByMerchant",
+                                                                                 "requestBody":  {
+                                                                                                     "content":  {
+                                                                                                                     "application/json":  {
+                                                                                                                                              "schema":  {
+                                                                                                                                                             "$ref":  "#/components/schemas/GiftcardOrderRequestMerchant"
+                                                                                                                                                         }
+                                                                                                                                          }
+                                                                                                                 },
+                                                                                                     "required":  true
+                                                                                                 },
+                                                                                 "responses":  {
+                                                                                                   "200":  {
+                                                                                                               "description":  "OK",
+                                                                                                               "content":  {
+                                                                                                                               "*/*":  {
+                                                                                                                                           "schema":  {
+                                                                                                                                                          "$ref":  "#/components/schemas/Response"
+                                                                                                                                                      }
+                                                                                                                                       }
+                                                                                                                           }
+                                                                                                           }
+                                                                                               }
+                                                                             }
+                                                                },
+                  "/api/giftCards/createGiftCardOrder":  {
+                                                             "post":  {
+                                                                          "tags":  [
+                                                                                       "gift-card-controller"
+                                                                                   ],
+                                                                          "operationId":  "createGiftCardOrder",
+                                                                          "requestBody":  {
+                                                                                              "content":  {
+                                                                                                              "application/json":  {
+                                                                                                                                       "schema":  {
+                                                                                                                                                      "$ref":  "#/components/schemas/GiftcardOrderRequest"
+                                                                                                                                                  }
+                                                                                                                                   }
+                                                                                                          },
+                                                                                              "required":  true
+                                                                                          },
+                                                                          "responses":  {
+                                                                                            "200":  {
+                                                                                                        "description":  "OK",
+                                                                                                        "content":  {
+                                                                                                                        "*/*":  {
+                                                                                                                                    "schema":  {
+                                                                                                                                                   "$ref":  "#/components/schemas/Response"
+                                                                                                                                               }
+                                                                                                                                }
+                                                                                                                    }
+                                                                                                    }
+                                                                                        }
+                                                                      }
+                                                         },
+                  "/api/giftCards/checkPaymentStatus":  {
+                                                            "post":  {
+                                                                         "tags":  [
+                                                                                      "gift-card-controller"
+                                                                                  ],
+                                                                         "operationId":  "checkPaymentStatusForOrder",
+                                                                         "parameters":  [
+                                                                                            {
+                                                                                                "name":  "type",
+                                                                                                "in":  "query",
+                                                                                                "required":  true,
+                                                                                                "schema":  {
+                                                                                                               "type":  "string"
+                                                                                                           }
+                                                                                            },
+                                                                                            {
+                                                                                                "name":  "payarcTransactionId",
+                                                                                                "in":  "query",
+                                                                                                "required":  true,
+                                                                                                "schema":  {
+                                                                                                               "type":  "string"
+                                                                                                           }
+                                                                                            }
+                                                                                        ],
+                                                                         "responses":  {
+                                                                                           "200":  {
+                                                                                                       "description":  "OK",
+                                                                                                       "content":  {
+                                                                                                                       "*/*":  {
+                                                                                                                                   "schema":  {
+                                                                                                                                                  "$ref":  "#/components/schemas/Response"
+                                                                                                                                              }
+                                                                                                                               }
+                                                                                                                   }
+                                                                                                   }
+                                                                                       }
+                                                                     }
+                                                        },
+                  "/api/giftCards/checkForPaymentAndGiftCardStatus":  {
+                                                                          "post":  {
+                                                                                       "tags":  [
+                                                                                                    "gift-card-controller"
+                                                                                                ],
+                                                                                       "operationId":  "checkForPaymentAndGiftCardStatus",
+                                                                                       "parameters":  [
+                                                                                                          {
+                                                                                                              "name":  "giftCardOrderId",
+                                                                                                              "in":  "query",
+                                                                                                              "required":  true,
+                                                                                                              "schema":  {
+                                                                                                                             "type":  "integer",
+                                                                                                                             "format":  "int64"
+                                                                                                                         }
+                                                                                                          }
+                                                                                                      ],
+                                                                                       "responses":  {
+                                                                                                         "200":  {
+                                                                                                                     "description":  "OK",
+                                                                                                                     "content":  {
+                                                                                                                                     "*/*":  {
+                                                                                                                                                 "schema":  {
+                                                                                                                                                                "$ref":  "#/components/schemas/Response"
+                                                                                                                                                            }
+                                                                                                                                             }
+                                                                                                                                 }
+                                                                                                                 }
+                                                                                                     }
+                                                                                   }
+                                                                      },
+                  "/api/external/reissueTokenForExternalCustomer":  {
+                                                                        "post":  {
+                                                                                     "tags":  [
+                                                                                                  "external-customer-controller"
+                                                                                              ],
+                                                                                     "operationId":  "reissueTokenForExternalCustomer",
+                                                                                     "parameters":  [
+                                                                                                        {
+                                                                                                            "name":  "email",
+                                                                                                            "in":  "query",
+                                                                                                            "required":  true,
+                                                                                                            "schema":  {
+                                                                                                                           "type":  "string"
+                                                                                                                       }
+                                                                                                        }
+                                                                                                    ],
+                                                                                     "responses":  {
+                                                                                                       "200":  {
+                                                                                                                   "description":  "OK",
+                                                                                                                   "content":  {
+                                                                                                                                   "*/*":  {
+                                                                                                                                               "schema":  {
+                                                                                                                                                              "$ref":  "#/components/schemas/Response"
+                                                                                                                                                          }
+                                                                                                                                           }
+                                                                                                                               }
+                                                                                                               }
+                                                                                                   }
+                                                                                 }
+                                                                    },
+                  "/api/external/loadBalance":  {
+                                                    "post":  {
+                                                                 "tags":  [
+                                                                              "external-customer-controller"
+                                                                          ],
+                                                                 "operationId":  "loadBalance",
+                                                                 "parameters":  [
+                                                                                    {
+                                                                                        "name":  "email",
+                                                                                        "in":  "query",
+                                                                                        "required":  true,
+                                                                                        "schema":  {
+                                                                                                       "type":  "string"
+                                                                                                   }
+                                                                                    },
+                                                                                    {
+                                                                                        "name":  "balance",
+                                                                                        "in":  "query",
+                                                                                        "required":  true,
+                                                                                        "schema":  {
+                                                                                                       "type":  "number",
+                                                                                                       "format":  "float"
+                                                                                                   }
+                                                                                    }
+                                                                                ],
+                                                                 "responses":  {
+                                                                                   "200":  {
+                                                                                               "description":  "OK",
+                                                                                               "content":  {
+                                                                                                               "*/*":  {
+                                                                                                                           "schema":  {
+                                                                                                                                          "$ref":  "#/components/schemas/Response"
+                                                                                                                                      }
+                                                                                                                       }
+                                                                                                           }
+                                                                                           }
+                                                                               }
+                                                             }
+                                                },
+                  "/api/external/giftCard/resendGiftCardCredentials":  {
+                                                                           "post":  {
+                                                                                        "tags":  [
+                                                                                                     "external-customer-controller"
+                                                                                                 ],
+                                                                                        "operationId":  "resendGiftCardCredentials",
+                                                                                        "parameters":  [
+                                                                                                           {
+                                                                                                               "name":  "giftCardOrderId",
+                                                                                                               "in":  "query",
+                                                                                                               "required":  true,
+                                                                                                               "schema":  {
+                                                                                                                              "type":  "integer",
+                                                                                                                              "format":  "int64"
+                                                                                                                          }
+                                                                                                           }
+                                                                                                       ],
+                                                                                        "responses":  {
+                                                                                                          "200":  {
+                                                                                                                      "description":  "OK",
+                                                                                                                      "content":  {
+                                                                                                                                      "*/*":  {
+                                                                                                                                                  "schema":  {
+                                                                                                                                                                 "$ref":  "#/components/schemas/Response"
+                                                                                                                                                             }
+                                                                                                                                              }
+                                                                                                                                  }
+                                                                                                                  }
+                                                                                                      }
+                                                                                    }
+                                                                       },
+                  "/api/external/giftCard/purchaseGiftCard":  {
+                                                                  "post":  {
+                                                                               "tags":  [
+                                                                                            "external-customer-controller"
+                                                                                        ],
+                                                                               "operationId":  "purchaseGiftCard",
+                                                                               "parameters":  [
+                                                                                                  {
+                                                                                                      "name":  "Authorization",
+                                                                                                      "in":  "header",
+                                                                                                      "required":  true,
+                                                                                                      "schema":  {
+                                                                                                                     "type":  "string"
+                                                                                                                 }
+                                                                                                  }
+                                                                                              ],
+                                                                               "requestBody":  {
+                                                                                                   "content":  {
+                                                                                                                   "application/json":  {
+                                                                                                                                            "schema":  {
+                                                                                                                                                           "$ref":  "#/components/schemas/ExternalCustomerGiftCardOrderRequest"
+                                                                                                                                                       }
+                                                                                                                                        }
+                                                                                                               },
+                                                                                                   "required":  true
+                                                                                               },
+                                                                               "responses":  {
+                                                                                                 "200":  {
+                                                                                                             "description":  "OK",
+                                                                                                             "content":  {
+                                                                                                                             "*/*":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/Response"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                                         }
+                                                                                                         }
+                                                                                             }
+                                                                           }
+                                                              },
+                  "/api/external/giftCard/createPreference":  {
+                                                                  "post":  {
+                                                                               "tags":  [
+                                                                                            "external-customer-controller"
+                                                                                        ],
+                                                                               "operationId":  "createPreference",
+                                                                               "requestBody":  {
+                                                                                                   "content":  {
+                                                                                                                   "application/json":  {
+                                                                                                                                            "schema":  {
+                                                                                                                                                           "$ref":  "#/components/schemas/ExternalCustomerGiftCardPurchaseFeePreferenceModel"
+                                                                                                                                                       }
+                                                                                                                                        }
+                                                                                                               },
+                                                                                                   "required":  true
+                                                                                               },
+                                                                               "responses":  {
+                                                                                                 "200":  {
+                                                                                                             "description":  "OK",
+                                                                                                             "content":  {
+                                                                                                                             "*/*":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/Response"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                                         }
+                                                                                                         }
+                                                                                             }
+                                                                           }
+                                                              },
+                  "/api/external/createExternalCustomer":  {
+                                                               "post":  {
+                                                                            "tags":  [
+                                                                                         "external-customer-controller"
+                                                                                     ],
+                                                                            "operationId":  "createExternalCustomer",
+                                                                            "requestBody":  {
+                                                                                                "content":  {
+                                                                                                                "application/json":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/ExternalCustomerModel"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                            },
+                                                                                                "required":  true
+                                                                                            },
+                                                                            "responses":  {
+                                                                                              "200":  {
+                                                                                                          "description":  "OK",
+                                                                                                          "content":  {
+                                                                                                                          "*/*":  {
+                                                                                                                                      "schema":  {
+                                                                                                                                                     "$ref":  "#/components/schemas/Response"
+                                                                                                                                                 }
+                                                                                                                                  }
+                                                                                                                      }
+                                                                                                      }
+                                                                                          }
+                                                                        }
+                                                           },
+                  "/api/external/activateOrDeactivateCustomer":  {
+                                                                     "post":  {
+                                                                                  "tags":  [
+                                                                                               "external-customer-controller"
+                                                                                           ],
+                                                                                  "operationId":  "activateOrDeactivateCustomer",
+                                                                                  "parameters":  [
+                                                                                                     {
+                                                                                                         "name":  "email",
+                                                                                                         "in":  "query",
+                                                                                                         "required":  true,
+                                                                                                         "schema":  {
+                                                                                                                        "type":  "string"
+                                                                                                                    }
+                                                                                                     },
+                                                                                                     {
+                                                                                                         "name":  "activate",
+                                                                                                         "in":  "query",
+                                                                                                         "required":  true,
+                                                                                                         "schema":  {
+                                                                                                                        "type":  "boolean"
+                                                                                                                    }
+                                                                                                     }
+                                                                                                 ],
+                                                                                  "responses":  {
+                                                                                                    "200":  {
+                                                                                                                "description":  "OK",
+                                                                                                                "content":  {
+                                                                                                                                "*/*":  {
+                                                                                                                                            "schema":  {
+                                                                                                                                                           "$ref":  "#/components/schemas/Response"
+                                                                                                                                                       }
+                                                                                                                                        }
+                                                                                                                            }
+                                                                                                            }
+                                                                                                }
+                                                                              }
+                                                                 },
+                  "/api/auth/verifyPhoneOtp":  {
+                                                   "post":  {
+                                                                "tags":  [
+                                                                             "auth-controller"
+                                                                         ],
+                                                                "operationId":  "verifyPhoneOtp",
+                                                                "parameters":  [
+                                                                                   {
+                                                                                       "name":  "otp",
+                                                                                       "in":  "query",
+                                                                                       "required":  true,
+                                                                                       "schema":  {
+                                                                                                      "type":  "string"
+                                                                                                  }
+                                                                                   }
+                                                                               ],
+                                                                "responses":  {
+                                                                                  "200":  {
+                                                                                              "description":  "OK",
+                                                                                              "content":  {
+                                                                                                              "*/*":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/Response"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                                          }
+                                                                                          }
+                                                                              }
+                                                            }
+                                               },
+                  "/api/auth/verifyEmailOtp":  {
+                                                   "post":  {
+                                                                "tags":  [
+                                                                             "auth-controller"
+                                                                         ],
+                                                                "operationId":  "verifyEmailOtp",
+                                                                "parameters":  [
+                                                                                   {
+                                                                                       "name":  "otp",
+                                                                                       "in":  "query",
+                                                                                       "required":  true,
+                                                                                       "schema":  {
+                                                                                                      "type":  "string"
+                                                                                                  }
+                                                                                   }
+                                                                               ],
+                                                                "responses":  {
+                                                                                  "200":  {
+                                                                                              "description":  "OK",
+                                                                                              "content":  {
+                                                                                                              "*/*":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/Response"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                                          }
+                                                                                          }
+                                                                              }
+                                                            }
+                                               },
+                  "/api/auth/sendOtpForPhoneVerification":  {
+                                                                "post":  {
+                                                                             "tags":  [
+                                                                                          "auth-controller"
+                                                                                      ],
+                                                                             "operationId":  "sendOtpForPhoneVerification",
+                                                                             "responses":  {
+                                                                                               "200":  {
+                                                                                                           "description":  "OK",
+                                                                                                           "content":  {
+                                                                                                                           "*/*":  {
+                                                                                                                                       "schema":  {
+                                                                                                                                                      "$ref":  "#/components/schemas/Response"
+                                                                                                                                                  }
+                                                                                                                                   }
+                                                                                                                       }
+                                                                                                       }
+                                                                                           }
+                                                                         }
+                                                            },
+                  "/api/auth/resetPassword":  {
+                                                  "post":  {
+                                                               "tags":  [
+                                                                            "auth-controller"
+                                                                        ],
+                                                               "operationId":  "resetPassword",
+                                                               "parameters":  [
+                                                                                  {
+                                                                                      "name":  "otp",
+                                                                                      "in":  "query",
+                                                                                      "required":  true,
+                                                                                      "schema":  {
+                                                                                                     "type":  "string"
+                                                                                                 }
+                                                                                  },
+                                                                                  {
+                                                                                      "name":  "newPassword",
+                                                                                      "in":  "query",
+                                                                                      "required":  true,
+                                                                                      "schema":  {
+                                                                                                     "type":  "string"
+                                                                                                 }
+                                                                                  },
+                                                                                  {
+                                                                                      "name":  "confirmPassword",
+                                                                                      "in":  "query",
+                                                                                      "required":  true,
+                                                                                      "schema":  {
+                                                                                                     "type":  "string"
+                                                                                                 }
+                                                                                  }
+                                                                              ],
+                                                               "responses":  {
+                                                                                 "200":  {
+                                                                                             "description":  "OK",
+                                                                                             "content":  {
+                                                                                                             "*/*":  {
+                                                                                                                         "schema":  {
+                                                                                                                                        "$ref":  "#/components/schemas/Response"
+                                                                                                                                    }
+                                                                                                                     }
+                                                                                                         }
+                                                                                         }
+                                                                             }
+                                                           }
+                                              },
+                  "/api/auth/resendOtpForResetPassword":  {
+                                                              "post":  {
+                                                                           "tags":  [
+                                                                                        "auth-controller"
+                                                                                    ],
+                                                                           "operationId":  "resendOtpForResetPassword",
+                                                                           "responses":  {
+                                                                                             "200":  {
+                                                                                                         "description":  "OK",
+                                                                                                         "content":  {
+                                                                                                                         "*/*":  {
+                                                                                                                                     "schema":  {
+                                                                                                                                                    "$ref":  "#/components/schemas/Response"
+                                                                                                                                                }
+                                                                                                                                 }
+                                                                                                                     }
+                                                                                                     }
+                                                                                         }
+                                                                       }
+                                                          },
+                  "/api/auth/resendOtpForPhoneVerification":  {
+                                                                  "post":  {
+                                                                               "tags":  [
+                                                                                            "auth-controller"
+                                                                                        ],
+                                                                               "operationId":  "resendOtpForPhoneVerification",
+                                                                               "responses":  {
+                                                                                                 "200":  {
+                                                                                                             "description":  "OK",
+                                                                                                             "content":  {
+                                                                                                                             "*/*":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/Response"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                                         }
+                                                                                                         }
+                                                                                             }
+                                                                           }
+                                                              },
+                  "/api/auth/resendOtpForEmailVerification":  {
+                                                                  "post":  {
+                                                                               "tags":  [
+                                                                                            "auth-controller"
+                                                                                        ],
+                                                                               "operationId":  "resendOtpForEmailVerification",
+                                                                               "responses":  {
+                                                                                                 "200":  {
+                                                                                                             "description":  "OK",
+                                                                                                             "content":  {
+                                                                                                                             "*/*":  {
+                                                                                                                                         "schema":  {
+                                                                                                                                                        "$ref":  "#/components/schemas/Response"
+                                                                                                                                                    }
+                                                                                                                                     }
+                                                                                                                         }
+                                                                                                         }
+                                                                                             }
+                                                                           }
+                                                              },
+                  "/api/auth/register":  {
+                                             "post":  {
+                                                          "tags":  [
+                                                                       "auth-controller"
+                                                                   ],
+                                                          "operationId":  "register",
+                                                          "requestBody":  {
+                                                                              "content":  {
+                                                                                              "application/json":  {
+                                                                                                                       "schema":  {
+                                                                                                                                      "$ref":  "#/components/schemas/RegisterModel"
+                                                                                                                                  }
+                                                                                                                   }
+                                                                                          },
+                                                                              "required":  true
+                                                                          },
+                                                          "responses":  {
+                                                                            "200":  {
+                                                                                        "description":  "OK",
+                                                                                        "content":  {
+                                                                                                        "*/*":  {
+                                                                                                                    "schema":  {
+                                                                                                                                   "$ref":  "#/components/schemas/Response"
+                                                                                                                               }
+                                                                                                                }
+                                                                                                    }
+                                                                                    }
+                                                                        }
+                                                      }
+                                         },
+                  "/api/auth/login":  {
+                                          "post":  {
+                                                       "tags":  [
+                                                                    "auth-controller"
+                                                                ],
+                                                       "operationId":  "login",
+                                                       "parameters":  [
+                                                                          {
+                                                                              "name":  "email",
+                                                                              "in":  "query",
+                                                                              "required":  true,
+                                                                              "schema":  {
+                                                                                             "type":  "string"
+                                                                                         }
+                                                                          },
+                                                                          {
+                                                                              "name":  "password",
+                                                                              "in":  "query",
+                                                                              "required":  true,
+                                                                              "schema":  {
+                                                                                             "type":  "string"
+                                                                                         }
+                                                                          }
+                                                                      ],
+                                                       "responses":  {
+                                                                         "200":  {
+                                                                                     "description":  "OK",
+                                                                                     "content":  {
+                                                                                                     "*/*":  {
+                                                                                                                 "schema":  {
+                                                                                                                                "$ref":  "#/components/schemas/Response"
+                                                                                                                            }
+                                                                                                             }
+                                                                                                 }
+                                                                                 }
+                                                                     }
+                                                   }
+                                      },
+                  "/api/auth/forgotPassword":  {
+                                                   "post":  {
+                                                                "tags":  [
+                                                                             "auth-controller"
+                                                                         ],
+                                                                "operationId":  "forgotPassword",
+                                                                "parameters":  [
+                                                                                   {
+                                                                                       "name":  "email",
+                                                                                       "in":  "query",
+                                                                                       "required":  true,
+                                                                                       "schema":  {
+                                                                                                      "type":  "string"
+                                                                                                  }
+                                                                                   }
+                                                                               ],
+                                                                "responses":  {
+                                                                                  "200":  {
+                                                                                              "description":  "OK",
+                                                                                              "content":  {
+                                                                                                              "*/*":  {
+                                                                                                                          "schema":  {
+                                                                                                                                         "$ref":  "#/components/schemas/Response"
+                                                                                                                                     }
+                                                                                                                      }
+                                                                                                          }
+                                                                                          }
+                                                                              }
+                                                            }
+                                               },
+                  "/api/user/getUser":  {
+                                            "get":  {
+                                                        "tags":  [
+                                                                     "user-controller"
+                                                                 ],
+                                                        "operationId":  "getUser",
+                                                        "responses":  {
+                                                                          "200":  {
+                                                                                      "description":  "OK",
+                                                                                      "content":  {
+                                                                                                      "*/*":  {
+                                                                                                                  "schema":  {
+                                                                                                                                 "$ref":  "#/components/schemas/Response"
+                                                                                                                             }
+                                                                                                              }
+                                                                                                  }
+                                                                                  }
+                                                                      }
+                                                    }
+                                        },
+                  "/api/user/getUserById":  {
+                                                "get":  {
+                                                            "tags":  [
+                                                                         "user-controller"
+                                                                     ],
+                                                            "operationId":  "getUserById",
+                                                            "parameters":  [
+                                                                               {
+                                                                                   "name":  "userId",
+                                                                                   "in":  "query",
+                                                                                   "required":  true,
+                                                                                   "schema":  {
+                                                                                                  "type":  "integer",
+                                                                                                  "format":  "int64"
+                                                                                              }
+                                                                               }
+                                                                           ],
+                                                            "responses":  {
+                                                                              "200":  {
+                                                                                          "description":  "OK",
+                                                                                          "content":  {
+                                                                                                          "*/*":  {
+                                                                                                                      "schema":  {
+                                                                                                                                     "$ref":  "#/components/schemas/Response"
+                                                                                                                                 }
+                                                                                                                  }
+                                                                                                      }
+                                                                                      }
+                                                                          }
+                                                        }
+                                            },
+                  "/api/user/getGenericFile":  {
+                                                   "get":  {
+                                                               "tags":  [
+                                                                            "user-controller"
+                                                                        ],
+                                                               "operationId":  "getGenericFile",
+                                                               "parameters":  [
+                                                                                  {
+                                                                                      "name":  "folderName",
+                                                                                      "in":  "query",
+                                                                                      "required":  true,
+                                                                                      "schema":  {
+                                                                                                     "type":  "string"
+                                                                                                 }
+                                                                                  },
+                                                                                  {
+                                                                                      "name":  "fileName",
+                                                                                      "in":  "query",
+                                                                                      "required":  true,
+                                                                                      "schema":  {
+                                                                                                     "type":  "string"
+                                                                                                 }
+                                                                                  }
+                                                                              ],
+                                                               "responses":  {
+                                                                                 "200":  {
+                                                                                             "description":  "OK",
+                                                                                             "content":  {
+                                                                                                             "*/*":  {
+                                                                                                                         "schema":  {
+                                                                                                                                        "type":  "string",
+                                                                                                                                        "format":  "binary"
+                                                                                                                                    }
+                                                                                                                     }
+                                                                                                         }
+                                                                                         }
+                                                                             }
+                                                           }
+                                               },
+                  "/api/user/getCards":  {
+                                             "get":  {
+                                                         "tags":  [
+                                                                      "user-controller"
+                                                                  ],
+                                                         "operationId":  "getCards",
+                                                         "responses":  {
+                                                                           "200":  {
+                                                                                       "description":  "OK",
+                                                                                       "content":  {
+                                                                                                       "*/*":  {
+                                                                                                                   "schema":  {
+                                                                                                                                  "$ref":  "#/components/schemas/Response"
+                                                                                                                              }
+                                                                                                               }
+                                                                                                   }
+                                                                                   }
+                                                                       }
+                                                     }
+                                         },
+                  "/api/giftCards/listAllOrders":  {
+                                                       "get":  {
+                                                                   "tags":  [
+                                                                                "gift-card-controller"
+                                                                            ],
+                                                                   "operationId":  "listAllOrders",
+                                                                   "responses":  {
+                                                                                     "200":  {
+                                                                                                 "description":  "OK",
+                                                                                                 "content":  {
+                                                                                                                 "*/*":  {
+                                                                                                                             "schema":  {
+                                                                                                                                            "$ref":  "#/components/schemas/Response"
+                                                                                                                                        }
+                                                                                                                         }
+                                                                                                             }
+                                                                                             }
+                                                                                 }
+                                                               }
+                                                   },
+                  "/api/giftCards/listAllGiftCards":  {
+                                                          "get":  {
+                                                                      "tags":  [
+                                                                                   "gift-card-controller"
+                                                                               ],
+                                                                      "operationId":  "listAllGiftCards",
+                                                                      "parameters":  [
+                                                                                         {
+                                                                                             "name":  "type",
+                                                                                             "in":  "query",
+                                                                                             "required":  true,
+                                                                                             "schema":  {
+                                                                                                            "type":  "string"
+                                                                                                        }
+                                                                                         }
+                                                                                     ],
+                                                                      "responses":  {
+                                                                                        "200":  {
+                                                                                                    "description":  "OK",
+                                                                                                    "content":  {
+                                                                                                                    "*/*":  {
+                                                                                                                                "schema":  {
+                                                                                                                                               "$ref":  "#/components/schemas/Response"
+                                                                                                                                           }
+                                                                                                                            }
+                                                                                                                }
+                                                                                                }
+                                                                                    }
+                                                                  }
+                                                      },
+                  "/api/external/giftCard/listGiftCards":  {
+                                                               "get":  {
+                                                                           "tags":  [
+                                                                                        "external-customer-controller"
+                                                                                    ],
+                                                                           "operationId":  "listAllGiftCards_1",
+                                                                           "responses":  {
+                                                                                             "200":  {
+                                                                                                         "description":  "OK",
+                                                                                                         "content":  {
+                                                                                                                         "*/*":  {
+                                                                                                                                     "schema":  {
+                                                                                                                                                    "$ref":  "#/components/schemas/Response"
+                                                                                                                                                }
+                                                                                                                                 }
+                                                                                                                     }
+                                                                                                     }
+                                                                                         }
+                                                                       }
+                                                           },
+                  "/api/external/giftCard/listAllGiftCardOrders":  {
+                                                                       "get":  {
+                                                                                   "tags":  [
+                                                                                                "external-customer-controller"
+                                                                                            ],
+                                                                                   "operationId":  "listAllGiftCardOrders",
+                                                                                   "parameters":  [
+                                                                                                      {
+                                                                                                          "name":  "Authorization",
+                                                                                                          "in":  "header",
+                                                                                                          "required":  true,
+                                                                                                          "schema":  {
+                                                                                                                         "type":  "string"
+                                                                                                                     }
+                                                                                                      }
+                                                                                                  ],
+                                                                                   "responses":  {
+                                                                                                     "200":  {
+                                                                                                                 "description":  "OK",
+                                                                                                                 "content":  {
+                                                                                                                                 "*/*":  {
+                                                                                                                                             "schema":  {
+                                                                                                                                                            "$ref":  "#/components/schemas/Response"
+                                                                                                                                                        }
+                                                                                                                                         }
+                                                                                                                             }
+                                                                                                             }
+                                                                                                 }
+                                                                               }
+                                                                   },
+                  "/api/external/giftCard/getActivePreference":  {
+                                                                     "get":  {
+                                                                                 "tags":  [
+                                                                                              "external-customer-controller"
+                                                                                          ],
+                                                                                 "operationId":  "getActivePreference",
+                                                                                 "responses":  {
+                                                                                                   "200":  {
+                                                                                                               "description":  "OK",
+                                                                                                               "content":  {
+                                                                                                                               "*/*":  {
+                                                                                                                                           "schema":  {
+                                                                                                                                                          "$ref":  "#/components/schemas/Response"
+                                                                                                                                                      }
+                                                                                                                                       }
+                                                                                                                           }
+                                                                                                           }
+                                                                                               }
+                                                                             }
+                                                                 },
+                  "/api/external/getCustomerDetails":  {
+                                                           "get":  {
+                                                                       "tags":  [
+                                                                                    "external-customer-controller"
+                                                                                ],
+                                                                       "operationId":  "getCustomerDetails",
+                                                                       "parameters":  [
+                                                                                          {
+                                                                                              "name":  "email",
+                                                                                              "in":  "query",
+                                                                                              "required":  true,
+                                                                                              "schema":  {
+                                                                                                             "type":  "string"
+                                                                                                         }
+                                                                                          }
+                                                                                      ],
+                                                                       "responses":  {
+                                                                                         "200":  {
+                                                                                                     "description":  "OK",
+                                                                                                     "content":  {
+                                                                                                                     "*/*":  {
+                                                                                                                                 "schema":  {
+                                                                                                                                                "$ref":  "#/components/schemas/Response"
+                                                                                                                                            }
+                                                                                                                             }
+                                                                                                                 }
+                                                                                                 }
+                                                                                     }
+                                                                   }
+                                                       },
+                  "/api/external/getAllCustomers":  {
+                                                        "get":  {
+                                                                    "tags":  [
+                                                                                 "external-customer-controller"
+                                                                             ],
+                                                                    "operationId":  "getAllCustomers",
+                                                                    "responses":  {
+                                                                                      "200":  {
+                                                                                                  "description":  "OK",
+                                                                                                  "content":  {
+                                                                                                                  "*/*":  {
+                                                                                                                              "schema":  {
+                                                                                                                                             "$ref":  "#/components/schemas/Response"
+                                                                                                                                         }
+                                                                                                                          }
+                                                                                                              }
+                                                                                              }
+                                                                                  }
+                                                                }
+                                                    },
+                  "/api/external/getAccountDetails":  {
+                                                          "get":  {
+                                                                      "tags":  [
+                                                                                   "external-customer-controller"
+                                                                               ],
+                                                                      "operationId":  "getAccountDetails",
+                                                                      "parameters":  [
+                                                                                         {
+                                                                                             "name":  "Authorization",
+                                                                                             "in":  "header",
+                                                                                             "required":  true,
+                                                                                             "schema":  {
+                                                                                                            "type":  "string"
+                                                                                                        }
+                                                                                         }
+                                                                                     ],
+                                                                      "responses":  {
+                                                                                        "200":  {
+                                                                                                    "description":  "OK",
+                                                                                                    "content":  {
+                                                                                                                    "*/*":  {
+                                                                                                                                "schema":  {
+                                                                                                                                               "$ref":  "#/components/schemas/Response"
+                                                                                                                                           }
+                                                                                                                            }
+                                                                                                                }
+                                                                                                }
+                                                                                    }
+                                                                  }
+                                                      }
+              },
+    "components":  {
+                       "schemas":  {
+                                       "Response":  {
+                                                        "type":  "object",
+                                                        "properties":  {
+                                                                           "status":  {
+                                                                                          "type":  "integer",
+                                                                                          "format":  "int32"
+                                                                                      },
+                                                                           "message":  {
+                                                                                           "type":  "string"
+                                                                                       },
+                                                                           "data":  {
+                                                                                        "type":  "object"
+                                                                                    }
+                                                                       }
+                                                    },
+                                       "UpdateUserModel":  {
+                                                               "required":  [
+                                                                                "firstname",
+                                                                                "lastname",
+                                                                                "phone"
+                                                                            ],
+                                                               "type":  "object",
+                                                               "properties":  {
+                                                                                  "id":  {
+                                                                                             "type":  "integer",
+                                                                                             "format":  "int64"
+                                                                                         },
+                                                                                  "firstname":  {
+                                                                                                    "type":  "string"
+                                                                                                },
+                                                                                  "lastname":  {
+                                                                                                   "type":  "string"
+                                                                                               },
+                                                                                  "phone":  {
+                                                                                                "type":  "string"
+                                                                                            },
+                                                                                  "about":  {
+                                                                                                "type":  "string"
+                                                                                            }
+                                                                              }
+                                                           },
+                                       "RegisterAddressModel":  {
+                                                                    "required":  [
+                                                                                     "addressLine1",
+                                                                                     "country"
+                                                                                 ],
+                                                                    "type":  "object",
+                                                                    "properties":  {
+                                                                                       "addressLine1":  {
+                                                                                                            "maxLength":  2147483647,
+                                                                                                            "minLength":  6,
+                                                                                                            "type":  "string"
+                                                                                                        },
+                                                                                       "addressLine2":  {
+                                                                                                            "type":  "string"
+                                                                                                        },
+                                                                                       "currentLocation":  {
+                                                                                                               "type":  "string"
+                                                                                                           },
+                                                                                       "currentLocationLat":  {
+                                                                                                                  "type":  "number",
+                                                                                                                  "format":  "double"
+                                                                                                              },
+                                                                                       "currentLocationLng":  {
+                                                                                                                  "type":  "number",
+                                                                                                                  "format":  "double"
+                                                                                                              },
+                                                                                       "city":  {
+                                                                                                    "type":  "string"
+                                                                                                },
+                                                                                       "country":  {
+                                                                                                       "maxLength":  2,
+                                                                                                       "minLength":  2,
+                                                                                                       "type":  "string"
+                                                                                                   },
+                                                                                       "state":  {
+                                                                                                     "type":  "string"
+                                                                                                 },
+                                                                                       "zipcode":  {
+                                                                                                       "type":  "string"
+                                                                                                   }
+                                                                                   }
+                                                                },
+                                       "CardCreateRequestModel":  {
+                                                                      "required":  [
+                                                                                       "cardExpiryDate",
+                                                                                       "cardIssuerType",
+                                                                                       "cardNumber",
+                                                                                       "cardholderName",
+                                                                                       "cvv"
+                                                                                   ],
+                                                                      "type":  "object",
+                                                                      "properties":  {
+                                                                                         "cardNumber":  {
+                                                                                                            "type":  "string"
+                                                                                                        },
+                                                                                         "cardExpiryDate":  {
+                                                                                                                "type":  "string"
+                                                                                                            },
+                                                                                         "cardholderName":  {
+                                                                                                                "type":  "string"
+                                                                                                            },
+                                                                                         "cardIssuerType":  {
+                                                                                                                "type":  "string"
+                                                                                                            },
+                                                                                         "cvv":  {
+                                                                                                     "type":  "string"
+                                                                                                 }
+                                                                                     }
+                                                                  },
+                                       "GiftcardOrderRequestMerchant":  {
+                                                                            "required":  [
+                                                                                             "email",
+                                                                                             "name"
+                                                                                         ],
+                                                                            "type":  "object",
+                                                                            "properties":  {
+                                                                                               "giftCardId":  {
+                                                                                                                  "type":  "integer",
+                                                                                                                  "format":  "int64"
+                                                                                                              },
+                                                                                               "quantity":  {
+                                                                                                                "type":  "integer",
+                                                                                                                "format":  "int32"
+                                                                                                            },
+                                                                                               "unitPrice":  {
+                                                                                                                 "type":  "number",
+                                                                                                                 "format":  "float"
+                                                                                                             },
+                                                                                               "email":  {
+                                                                                                             "type":  "string"
+                                                                                                         },
+                                                                                               "name":  {
+                                                                                                            "type":  "string"
+                                                                                                        }
+                                                                                           }
+                                                                        },
+                                       "GiftcardOrderRequest":  {
+                                                                    "required":  [
+                                                                                     "failureUrl",
+                                                                                     "successUrl"
+                                                                                 ],
+                                                                    "type":  "object",
+                                                                    "properties":  {
+                                                                                       "giftCardId":  {
+                                                                                                          "type":  "integer",
+                                                                                                          "format":  "int64"
+                                                                                                      },
+                                                                                       "quantity":  {
+                                                                                                        "type":  "integer",
+                                                                                                        "format":  "int32"
+                                                                                                    },
+                                                                                       "unitPrice":  {
+                                                                                                         "type":  "number",
+                                                                                                         "format":  "float"
+                                                                                                     },
+                                                                                       "successUrl":  {
+                                                                                                          "type":  "string"
+                                                                                                      },
+                                                                                       "failureUrl":  {
+                                                                                                          "type":  "string"
+                                                                                                      }
+                                                                                   }
+                                                                },
+                                       "ExternalCustomerGiftCardOrderRequest":  {
+                                                                                    "required":  [
+                                                                                                     "senderName"
+                                                                                                 ],
+                                                                                    "type":  "object",
+                                                                                    "properties":  {
+                                                                                                       "productId":  {
+                                                                                                                         "type":  "integer",
+                                                                                                                         "format":  "int64"
+                                                                                                                     },
+                                                                                                       "unitPrice":  {
+                                                                                                                         "type":  "number",
+                                                                                                                         "format":  "float"
+                                                                                                                     },
+                                                                                                       "email":  {
+                                                                                                                     "type":  "string"
+                                                                                                                 },
+                                                                                                       "senderName":  {
+                                                                                                                          "type":  "string"
+                                                                                                                      }
+                                                                                                   }
+                                                                                },
+                                       "ExternalCustomerGiftCardPurchaseFeePreferenceModel":  {
+                                                                                                  "type":  "object",
+                                                                                                  "properties":  {
+                                                                                                                     "feeFor1To99":  {
+                                                                                                                                         "type":  "number",
+                                                                                                                                         "format":  "float"
+                                                                                                                                     },
+                                                                                                                     "feeFor100To250":  {
+                                                                                                                                            "type":  "number",
+                                                                                                                                            "format":  "float"
+                                                                                                                                        },
+                                                                                                                     "feeFor251To500":  {
+                                                                                                                                            "type":  "number",
+                                                                                                                                            "format":  "float"
+                                                                                                                                        },
+                                                                                                                     "feeFor501To750":  {
+                                                                                                                                            "type":  "number",
+                                                                                                                                            "format":  "float"
+                                                                                                                                        },
+                                                                                                                     "feeFor751To999":  {
+                                                                                                                                            "type":  "number",
+                                                                                                                                            "format":  "float"
+                                                                                                                                        },
+                                                                                                                     "feePercentageFor1000To5000":  {
+                                                                                                                                                        "type":  "number",
+                                                                                                                                                        "format":  "float"
+                                                                                                                                                    }
+                                                                                                                 }
+                                                                                              },
+                                       "ExternalCustomerModel":  {
+                                                                     "required":  [
+                                                                                      "firstname",
+                                                                                      "lastname",
+                                                                                      "phone"
+                                                                                  ],
+                                                                     "type":  "object",
+                                                                     "properties":  {
+                                                                                        "firstname":  {
+                                                                                                          "type":  "string"
+                                                                                                      },
+                                                                                        "lastname":  {
+                                                                                                         "type":  "string"
+                                                                                                     },
+                                                                                        "email":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                        "phone":  {
+                                                                                                      "type":  "string"
+                                                                                                  },
+                                                                                        "profilePhoto":  {
+                                                                                                             "type":  "string"
+                                                                                                         }
+                                                                                    }
+                                                                 },
+                                       "RegisterModel":  {
+                                                             "required":  [
+                                                                              "accountType",
+                                                                              "address",
+                                                                              "firstname",
+                                                                              "lastname",
+                                                                              "password",
+                                                                              "phone"
+                                                                          ],
+                                                             "type":  "object",
+                                                             "properties":  {
+                                                                                "firstname":  {
+                                                                                                  "type":  "string"
+                                                                                              },
+                                                                                "lastname":  {
+                                                                                                 "type":  "string"
+                                                                                             },
+                                                                                "email":  {
+                                                                                              "type":  "string"
+                                                                                          },
+                                                                                "password":  {
+                                                                                                 "type":  "string"
+                                                                                             },
+                                                                                "phone":  {
+                                                                                              "maxLength":  2147483647,
+                                                                                              "minLength":  9,
+                                                                                              "type":  "string"
+                                                                                          },
+                                                                                "address":  {
+                                                                                                "$ref":  "#/components/schemas/RegisterAddressModel"
+                                                                                            },
+                                                                                "profilePhoto":  {
+                                                                                                     "type":  "string"
+                                                                                                 },
+                                                                                "about":  {
+                                                                                              "type":  "string"
+                                                                                          },
+                                                                                "accountType":  {
+                                                                                                    "type":  "string",
+                                                                                                    "enum":  [
+                                                                                                                 "MERCHANT",
+                                                                                                                 "USER",
+                                                                                                                 "ADMIN",
+                                                                                                                 "SUPER_ADMIN"
+                                                                                                             ]
+                                                                                                }
+                                                                            }
+                                                         }
+                                   },
+                       "securitySchemes":  {
+                                               "BearerAuth":  {
+                                                                  "type":  "http",
+                                                                  "scheme":  "bearer",
+                                                                  "bearerFormat":  "JWT"
+                                                              }
+                                           }
+                   }
+}

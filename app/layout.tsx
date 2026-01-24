@@ -6,6 +6,7 @@ import { Toaster } from "sonner"
 import Header from "@/components/header"
 import Footer from "@/components/footer"
 import AOS from "@/components/aos"
+import { AuthProvider } from "@/lib/auth-context"
 import "./globals.css"
 import "aos/dist/aos.css"
 
@@ -43,12 +44,14 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`font-sans antialiased`}>
-        <AOS />
-        <Header />
-        {children}
-        <Footer />
-        <Toaster position="top-center" />
-        <Analytics />
+        <AuthProvider>
+          <AOS />
+          <Header />
+          {children}
+          <Footer />
+          <Toaster position="top-center" richColors />
+          <Analytics />
+        </AuthProvider>
       </body>
     </html>
   )

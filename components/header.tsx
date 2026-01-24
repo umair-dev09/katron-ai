@@ -10,11 +10,16 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "@/components/ui/sheet"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Skeleton } from "@/components/ui/skeleton"
+import { useAuth } from "@/lib/auth-context"
+import { toast } from "sonner"
 
 export default function Header() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const { user, isAuthenticated, isInitialized, logout } = useAuth()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState("")
   const router = useRouter()
@@ -26,16 +31,13 @@ export default function Header() {
   }, [pathname])
 
   const handleLogin = () => {
-    // TODO: Connect to backend authentication
-    console.log("Login clicked")
-    // For demo: toggle logged in state
-    setIsLoggedIn(true)
+    router.push("/auth")
   }
 
   const handleLogout = () => {
-    // TODO: Connect to backend logout
-    console.log("Logout clicked")
-    setIsLoggedIn(false)
+    logout()
+    toast.success("Logged out successfully")
+    router.push("/")
   }
 
   const handleSettings = () => {
@@ -62,6 +64,12 @@ export default function Header() {
       href: "/buy",
     },
   ]
+
+  // Get user display name
+  const displayName = user ? `${user.firstname} ${user.lastname}`.trim() : "User"
+  const userInitials = user 
+    ? `${user.firstname?.[0] || ""}${user.lastname?.[0] || ""}`.toUpperCase() 
+    : "U"
 
   return (
     <header className="sticky top-0 z-50 w-full border-b-2 border-border/60 bg-white/[0.94] dark:bg-slate-950/[0.94] backdrop-blur-lg">
@@ -110,7 +118,13 @@ export default function Header() {
             ))}
 
             {/* Login / Profile */}
-            {!isLoggedIn ? (
+            {!isInitialized ? (
+              // Skeleton loading - hybrid design that resembles both button and profile
+              <div className="ml-4 flex items-center gap-2 h-10 px-3 rounded-full bg-gray-200 dark:bg-gray-700 animate-pulse">
+                <div className="w-7 h-7 rounded-full bg-gray-300 dark:bg-gray-600" />
+                <div className="w-16 h-3 rounded-full bg-gray-300 dark:bg-gray-600" />
+              </div>
+            ) : !isAuthenticated ? (
               <Button
                 onClick={handleLogin}
                 className="ml-4 h-10 px-6 py-[22px] rounded-md text-base text-primary-foreground font-semibold transition-all"
@@ -118,14 +132,44 @@ export default function Header() {
                 Get Started
               </Button>
             ) : (
-              <DropdownMenu>
+              <DropdownMenu modal={false}>
                 <DropdownMenuTrigger asChild>
-                  <button className="ml-4 flex items-center gap-2 px-4 h-10 rounded-full bg-gray-50 dark:bg-gray-900/20 hover:bg-gray-100 dark:hover:bg-gray-800/40 border border-gray-200 dark:border-gray-800 transition-all">
-                    <User className="w-4 h-4 text-primary" />
-                    <span className="text-sm font-medium text-foreground">My Profile</span>
+                  <button className=" flex items-center justify-center w-10 h-10 rounded-full overflow-hidden ring-2 ring-transparent hover:ring-primary/20 transition-all">
+                    <Avatar className="w-9 h-9">
+                      <AvatarImage 
+                        src={user?.profilePhoto || undefined} 
+                        alt={displayName}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-52 p-2">
+                <DropdownMenuContent align="end" className="w-56 p-2">
+                  <div className="px-3 py-2 mb-2 flex items-center gap-3">
+                    <Avatar className="w-10 h-10">
+                      <AvatarImage 
+                        src={user?.profilePhoto || undefined} 
+                        alt={displayName}
+                        className="object-cover"
+                      />
+                      <AvatarFallback className="bg-primary/10 text-primary font-semibold text-sm">
+                        {userInitials}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{displayName}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                    </div>
+                  </div>
+                  <div className="px-3 pb-2">
+                    <span className="inline-block px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                      {user?.accountType}
+                    </span>
+                  </div>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={() => router.push("/my-giftcards")} 
                     className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-800 rounded-lg py-3 px-3"
@@ -140,6 +184,7 @@ export default function Header() {
                     <Settings className="w-[18px] h-[18px] mr-[6px]" />
                     <span className="text-[15px] font-[480]">Settings</span>
                   </DropdownMenuItem>
+                  <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={handleLogout} 
                     className="cursor-pointer hover:bg-red-50 dark:hover:bg-red-950/20 focus:bg-red-50 dark:focus:bg-red-950/20 text-red-600 dark:text-red-400 rounded-lg py-3 px-3"
@@ -178,7 +223,16 @@ export default function Header() {
 
                   {/* Mobile Login/Profile Section */}
                   <div className="mt-auto pb-6 space-y-3 pt-6 border-t border-border">
-                    {!isLoggedIn ? (
+                    {!isInitialized ? (
+                      // Skeleton loading for mobile - hybrid design
+                      <div className="flex items-center gap-3 px-4 py-3 mx-2 rounded-xl bg-gray-200 dark:bg-gray-700 animate-pulse">
+                        <div className="w-11 h-11 rounded-full bg-gray-300 dark:bg-gray-600" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-24 rounded bg-gray-300 dark:bg-gray-600" />
+                          <div className="h-3 w-32 rounded bg-gray-300 dark:bg-gray-600" />
+                        </div>
+                      </div>
+                    ) : !isAuthenticated ? (
                       <Button 
                         onClick={handleLogin} 
                         className="w-full h-11 font-semibold shadow-md bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 rounded-full"
@@ -187,6 +241,25 @@ export default function Header() {
                       </Button>
                     ) : (
                       <>
+                        <div className="px-4 py-2 mb-2 flex items-center gap-3">
+                          <Avatar className="w-12 h-12">
+                            <AvatarImage 
+                              src={user?.profilePhoto || undefined} 
+                              alt={displayName}
+                              className="object-cover"
+                            />
+                            <AvatarFallback className="bg-primary/10 text-primary font-semibold">
+                              {userInitials}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium text-foreground">{displayName}</p>
+                            <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+                            <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-primary/10 text-primary rounded-full">
+                              {user?.accountType}
+                            </span>
+                          </div>
+                        </div>
                         <Button
                           onClick={() => router.push("/my-giftcards")}
                           variant="outline"

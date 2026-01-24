@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { LogOut, Trash2, AlertTriangle } from "lucide-react"
+import { LogOut, Trash2, AlertTriangle, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -15,26 +15,36 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog"
 import { toast } from "sonner"
+import { useAuth } from "@/lib/auth-context"
 
 export default function AccountActionsSection() {
   const router = useRouter()
+  const { logout, isLoading } = useAuth()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
 
-  const handleLogout = () => {
-    // Integrate with backend logout logic here
-    console.log("Logging out...")
-    toast.success("Logged out successfully")
-    // Redirect to login or home page
-    router.push("/auth")
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    try {
+      logout()
+      toast.success("Logged out successfully")
+      // Redirect to home page
+      router.push("/")
+    } catch (error) {
+      console.error("Logout error:", error)
+      toast.error("Failed to logout. Please try again.")
+    } finally {
+      setIsLoggingOut(false)
+      setShowLogoutDialog(false)
+    }
   }
 
   const handleDeleteAccount = () => {
-    // Integrate with backend account deletion logic here
-    console.log("Deleting account...")
-    toast.success("Account deleted successfully")
-    // Redirect to home or login page
-    router.push("/")
+    // Note: Backend doesn't have delete account endpoint yet
+    // This is a placeholder for future implementation
+    toast.info("Account deletion is not available at this time. Please contact support.")
+    setShowDeleteDialog(false)
   }
 
   return (
@@ -51,10 +61,20 @@ export default function AccountActionsSection() {
           <Button
             onClick={() => setShowLogoutDialog(true)}
             variant="outline"
+            disabled={isLoggingOut || isLoading}
             className="w-full sm:w-auto h-11 px-6 border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-900/50 font-semibold"
           >
-            <LogOut className="w-4 h-4 mr-2" />
-            Sign Out
+            {isLoggingOut ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Signing Out...
+              </>
+            ) : (
+              <>
+                <LogOut className="w-4 h-4 mr-2" />
+                Sign Out
+              </>
+            )}
           </Button>
         </div>
       </div>
@@ -92,9 +112,17 @@ export default function AccountActionsSection() {
             <AlertDialogCancel className="font-semibold">Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleLogout}
+              disabled={isLoggingOut}
               className="bg-primary hover:bg-primary/90 font-semibold"
             >
-              Sign Out
+              {isLoggingOut ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Signing Out...
+                </>
+              ) : (
+                "Sign Out"
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

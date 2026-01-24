@@ -7,82 +7,182 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, Eye, EyeOff } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
+import type { RegisterModel } from "@/lib/api/auth"
 
 interface SignupSectionProps {
-  userType: string | null
+  userType: "merchant" | "user" | null
   onToggleMode: (mode: "login" | "signup") => void
+  onNeedsVerification: (email: string) => void
 }
 
-export function SignupSection({ userType, onToggleMode }: SignupSectionProps) {
+export function SignupSection({ userType, onToggleMode, onNeedsVerification }: SignupSectionProps) {
+  const { register, isLoading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
-    name: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     password: "",
+    confirmPassword: "",
   })
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    // First name validation
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = "First name is required"
+    } else if (formData.firstName.trim().length < 2) {
+      newErrors.firstName = "First name must be at least 2 characters"
+    }
+
+    // Last name validation
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required"
+    } else if (formData.lastName.trim().length < 2) {
+      newErrors.lastName = "Last name must be at least 2 characters"
+    }
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!emailRegex.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    // Phone validation (min 9 characters as per API)
+    const phoneClean = formData.phone.replace(/\D/g, "")
+    if (!formData.phone.trim()) {
+      newErrors.phone = "Phone number is required"
+    } else if (phoneClean.length < 9) {
+      newErrors.phone = "Phone number must be at least 9 digits"
+    }
+
+    // Password validation
+    if (!formData.password) {
+      newErrors.password = "Password is required"
+    } else if (formData.password.length < 8) {
+      newErrors.password = "Password must be at least 8 characters"
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      newErrors.password = "Password must contain uppercase, lowercase, and number"
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      newErrors.confirmPassword = "Please confirm your password"
+    } else if (formData.password !== formData.confirmPassword) {
+      newErrors.confirmPassword = "Passwords do not match"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target
     setFormData((prev) => ({ ...prev, [id]: value }))
+    // Clear error when user starts typing
+    if (errors[id]) {
+      setErrors((prev) => ({ ...prev, [id]: "" }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.name || !formData.email || !formData.phone || !formData.password) {
-      toast.error("Please fill in all fields")
+    if (!validateForm()) {
+      toast.error("Please fix the errors in the form")
       return
     }
 
-    if (formData.password.length < 8) {
-      toast.error("Password must be at least 8 characters")
+    if (!userType) {
+      toast.error("Please select an account type")
       return
     }
 
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      toast.success("Account created successfully!")
-      // In production, handle actual signup here
-      setFormData({ name: "", email: "", phone: "", password: "" })
+      const registerData: RegisterModel = {
+        firstname: formData.firstName.trim(),
+        lastname: formData.lastName.trim(),
+        email: formData.email.trim().toLowerCase(),
+        password: formData.password,
+        phone: formData.phone.replace(/\D/g, ""), // Remove non-digits
+        accountType: userType.toUpperCase() as "MERCHANT" | "USER",
+        address: {
+          addressLine1: "Not provided", // Default address as it's required by API
+          country: "US", // Default country code
+        },
+      }
+
+      const result = await register(registerData)
+
+      if (result.success || result.needsVerification) {
+        toast.success(result.message || "Registration successful! Please verify your email.")
+        // Small delay to let the toast show, then redirect
+        setTimeout(() => {
+          onNeedsVerification(result.email || formData.email)
+        }, 500)
+      } else {
+        toast.error(result.message || "Registration failed. Please try again.")
+      }
     } catch (error) {
-      toast.error("Signup failed. Please try again.")
+      toast.error("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSocialSignup = async (provider: string) => {
-    setIsLoading(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      toast.success(`Signed up with ${provider}!`)
-      // In production, handle actual OAuth here
-    } catch (error) {
-      toast.error(`Failed to sign up with ${provider}`)
-    } finally {
-      setIsLoading(false)
-    }
+    toast.info(`${provider} sign up coming soon!`)
   }
+
+  const loading = isLoading || authLoading
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 md:space-y-4">
-      <div className="space-y-2">
-        <Label htmlFor="name" className="text-sm font-medium">
-          Full Name
-        </Label>
-        <Input
-          id="name"
-          type="text"
-          placeholder="John Doe"
-          value={formData.name}
-          onChange={handleInputChange}
-          disabled={isLoading}
-          className="h-10 md:h-11 text-sm md:text-base border border-border focus:border-primary focus:outline-none transition-colors duration-200"
-        />
+      <div className="grid grid-cols-2 gap-3">
+        <div className="space-y-2">
+          <Label htmlFor="firstName" className="text-sm font-medium">
+            First Name
+          </Label>
+          <Input
+            id="firstName"
+            type="text"
+            placeholder="John"
+            value={formData.firstName}
+            onChange={handleInputChange}
+            disabled={loading}
+            className={`h-10 md:h-11 text-sm md:text-base border ${errors.firstName ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200`}
+          />
+          {errors.firstName && (
+            <p className="text-xs text-red-500">{errors.firstName}</p>
+          )}
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="lastName" className="text-sm font-medium">
+            Last Name
+          </Label>
+          <Input
+            id="lastName"
+            type="text"
+            placeholder="Doe"
+            value={formData.lastName}
+            onChange={handleInputChange}
+            disabled={loading}
+            className={`h-10 md:h-11 text-sm md:text-base border ${errors.lastName ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200`}
+          />
+          {errors.lastName && (
+            <p className="text-xs text-red-500">{errors.lastName}</p>
+          )}
+        </div>
       </div>
 
       <div className="space-y-2">
@@ -95,9 +195,12 @@ export function SignupSection({ userType, onToggleMode }: SignupSectionProps) {
           placeholder="m@example.com"
           value={formData.email}
           onChange={handleInputChange}
-          disabled={isLoading}
-          className="h-10 md:h-11 text-sm md:text-base border border-border focus:border-primary focus:outline-none transition-colors duration-200"
+          disabled={loading}
+          className={`h-10 md:h-11 text-sm md:text-base border ${errors.email ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200`}
         />
+        {errors.email && (
+          <p className="text-xs text-red-500">{errors.email}</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -110,33 +213,67 @@ export function SignupSection({ userType, onToggleMode }: SignupSectionProps) {
           placeholder="+1 (555) 123-4567"
           value={formData.phone}
           onChange={handleInputChange}
-          disabled={isLoading}
-          className="h-10 md:h-11 text-sm md:text-base border border-border focus:border-primary focus:outline-none transition-colors duration-200"
+          disabled={loading}
+          className={`h-10 md:h-11 text-sm md:text-base border ${errors.phone ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200`}
         />
+        {errors.phone && (
+          <p className="text-xs text-red-500">{errors.phone}</p>
+        )}
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-medium">
           Password
         </Label>
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            value={formData.password}
+            onChange={handleInputChange}
+            disabled={loading}
+            className={`h-10 md:h-11 text-sm md:text-base border ${errors.password ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200 pr-10`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        {errors.password ? (
+          <p className="text-xs text-red-500">{errors.password}</p>
+        ) : (
+          <p className="text-xs text-muted-foreground">Min 8 chars with uppercase, lowercase & number</p>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword" className="text-sm font-medium">
+          Confirm Password
+        </Label>
         <Input
-          id="password"
-          type="password"
+          id="confirmPassword"
+          type={showPassword ? "text" : "password"}
           placeholder="••••••••"
-          value={formData.password}
+          value={formData.confirmPassword}
           onChange={handleInputChange}
-          disabled={isLoading}
-          className="h-10 md:h-11 text-sm md:text-base border border-border focus:border-primary focus:outline-none transition-colors duration-200"
+          disabled={loading}
+          className={`h-10 md:h-11 text-sm md:text-base border ${errors.confirmPassword ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200`}
         />
-        <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
+        {errors.confirmPassword && (
+          <p className="text-xs text-red-500">{errors.confirmPassword}</p>
+        )}
       </div>
 
       <Button
         type="submit"
-        disabled={isLoading}
+        disabled={loading}
         className="w-full h-10 md:h-11 text-sm md:text-base font-semibold rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
       >
-        {isLoading ? (
+        {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Creating account...
@@ -159,11 +296,11 @@ export function SignupSection({ userType, onToggleMode }: SignupSectionProps) {
         <Button
           type="button"
           variant="outline"
-          disabled={isLoading}
+          disabled={loading}
           onClick={() => handleSocialSignup("Google")}
           className="h-10 md:h-11 rounded-lg border-primary/20 hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
-          {isLoading ? (
+          {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
@@ -191,11 +328,11 @@ export function SignupSection({ userType, onToggleMode }: SignupSectionProps) {
         <Button
           type="button"
           variant="outline"
-          disabled={isLoading}
+          disabled={loading}
           onClick={() => handleSocialSignup("Facebook")}
           className="h-10 md:h-11 rounded-lg border-primary/20 hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
-          {isLoading ? (
+          {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">

@@ -4,10 +4,13 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import UserProfileSection from "@/components/settings/user-profile-section"
+import ChangePasswordSection from "@/components/settings/change-password-section"
 import AccountActionsSection from "@/components/settings/account-actions-section"
+import { useAuth } from "@/lib/auth-context"
 
 export default function SettingsPageContent() {
   const router = useRouter()
+  const { user, isLoading } = useAuth()
 
   return (
     <main className="min-h-screen bg-background">
@@ -35,6 +38,9 @@ export default function SettingsPageContent() {
 
           {/* User Profile Section */}
           <UserProfileSection />
+
+          {/* Change Password Section */}
+          <ChangePasswordSection />
 
           {/* Account Actions Section */}
           <AccountActionsSection />

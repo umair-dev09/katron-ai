@@ -1,7 +1,9 @@
 "use client"
 
+import { useState } from "react"
 import { DotLottieReact } from '@lottiefiles/dotlottie-react'
 import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 interface GiftCardPreviewProps {
   card: {
@@ -11,12 +13,22 @@ interface GiftCardPreviewProps {
     discount: string
   }
   showBuyButton?: boolean
+  logoUrl?: string
+  redeemInstruction?: string
 }
 
-export default function GiftCardPreview({ card, showBuyButton = false }: GiftCardPreviewProps) {
+export default function GiftCardPreview({ card, showBuyButton = false, logoUrl, redeemInstruction }: GiftCardPreviewProps) {
+  const [isExpanded, setIsExpanded] = useState(false)
+  
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  const discountValue = parseFloat(card.discount)
+  const showDiscount = discountValue > 0
+  
+  const fullRedeemText = redeemInstruction || `Visit the ${card.name} website or app, navigate to the gift card or redeem section, and enter your code to add the balance to your account.`
+  const shouldTruncate = fullRedeemText.length > 120
 
   return (
     <div className="space-y-5">
@@ -25,12 +37,26 @@ export default function GiftCardPreview({ card, showBuyButton = false }: GiftCar
         {/* Logo Background Card */}
         <div className={`relative ${card.bgColor} p-10 flex items-center justify-center min-h-[220px] overflow-hidden rounded-t-xl`}>
           {/* Discount Sticker */}
-          <div className="absolute bottom-3 left-3 bg-teal-500 text-white px-2.5 py-1 rounded-full text-xs font-bold z-10">
-            {card.discount}% OFF
-          </div>
+          {showDiscount && (
+            <div className="absolute bottom-3 left-3 bg-teal-500 text-white px-2.5 py-1 rounded-full text-xs font-bold z-10">
+              {card.discount}% OFF
+            </div>
+          )}
 
-          {/* Logo */}
-          <div className="text-6xl drop-shadow-lg">{card.logo}</div>
+          {/* Logo - Image or Emoji */}
+          {logoUrl ? (
+            <div className="relative w-32 h-32 drop-shadow-lg">
+              <Image
+                src={logoUrl}
+                alt={card.name}
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            </div>
+          ) : (
+            <div className="text-6xl drop-shadow-lg">{card.logo}</div>
+          )}
         </div>
 
         {/* Content */}
@@ -42,7 +68,30 @@ export default function GiftCardPreview({ card, showBuyButton = false }: GiftCar
       {/* Redemption Instructions */}
       <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
         <p className="text-sm text-blue-900 dark:text-blue-100 leading-relaxed">
-          <span className="font-semibold">How to redeem:</span> Visit the {card.name} website or app, navigate to the gift card or redeem section, and enter your code to add the balance to your account.
+          <span className="font-semibold">How to redeem:</span>{" "}
+          {shouldTruncate && !isExpanded ? (
+            <>
+              {fullRedeemText.slice(0, 120).trim()}...
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="ml-1 text-blue-600 dark:text-blue-400 font-medium hover:underline"
+              >
+                Read more
+              </button>
+            </>
+          ) : (
+            <>
+              {fullRedeemText}
+              {shouldTruncate && (
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="ml-1 text-blue-600 dark:text-blue-400 font-medium hover:underline"
+                >
+                  Show less
+                </button>
+              )}
+            </>
+          )}
         </p>
       </div>
 
@@ -59,10 +108,10 @@ export default function GiftCardPreview({ card, showBuyButton = false }: GiftCar
         </div>
 
         <p className="sm:text-[17px] text-[18px] font-semibold text-foreground relative z-10">
-          🎉 200+ {card.name} gift cards sent
+          🎉 Trusted by thousands of customers
         </p>
         <p className="text-xs text-muted-foreground">
-          Join thousands of satisfied customers
+          Fast, secure, and reliable gift card delivery
         </p>
         <div className="flex items-center justify-center gap-2 text-xs text-muted-foreground pt-1">
           <span className="flex items-center gap-1">

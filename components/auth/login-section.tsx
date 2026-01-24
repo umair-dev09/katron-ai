@@ -7,51 +7,84 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { Loader2 } from "lucide-react"
+import { Loader2, Eye, EyeOff } from "lucide-react"
+import { useAuth } from "@/lib/auth-context"
 
 interface LoginSectionProps {
-  userType: string | null
+  userType: "merchant" | "user" | null
   onToggleMode: (mode: "login" | "signup") => void
+  onNeedsVerification: (email: string) => void
+  onLoginSuccess: () => void
+  onForgotPassword: () => void
 }
 
-export function LoginSection({ userType, onToggleMode }: LoginSectionProps) {
+export function LoginSection({ userType, onToggleMode, onNeedsVerification, onLoginSuccess, onForgotPassword }: LoginSectionProps) {
+  const { login, isLoading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!email.trim()) {
+      newErrors.email = "Email is required"
+    } else if (!emailRegex.test(email)) {
+      newErrors.email = "Please enter a valid email address"
+    }
+
+    // Password validation
+    if (!password) {
+      newErrors.password = "Password is required"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!email || !password) {
-      toast.error("Please fill in all fields")
+    if (!validateForm()) {
       return
     }
 
     setIsLoading(true)
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000))
-      toast.success(`Welcome back, ${userType}!`)
-      // In production, handle actual login here
+      const result = await login(email.trim().toLowerCase(), password)
+
+      if (result.success) {
+        toast.success(result.message || "Welcome back!")
+        onLoginSuccess()
+      } else if (result.needsVerification) {
+        toast.info(result.message || "Please verify your email")
+        // Small delay to let the toast show
+        setTimeout(() => {
+          onNeedsVerification(result.email || email)
+        }, 500)
+      } else {
+        toast.error(result.message || "Login failed. Please try again.")
+      }
     } catch (error) {
-      toast.error("Login failed. Please try again.")
+      toast.error("An unexpected error occurred. Please try again.")
     } finally {
       setIsLoading(false)
     }
   }
 
   const handleSocialLogin = async (provider: string) => {
-    setIsLoading(true)
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
-      toast.success(`Signed in with ${provider}!`)
-      // In production, handle actual OAuth here
-    } catch (error) {
-      toast.error(`Failed to sign in with ${provider}`)
-    } finally {
-      setIsLoading(false)
-    }
+    toast.info(`${provider} login coming soon!`)
   }
+
+  const handleForgotPassword = () => {
+    onForgotPassword()
+  }
+
+  const loading = isLoading || authLoading
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
@@ -64,10 +97,16 @@ export function LoginSection({ userType, onToggleMode }: LoginSectionProps) {
           type="email"
           placeholder="m@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          disabled={isLoading}
-          className="h-10 md:h-11 text-sm md:text-base border border-border focus:border-primary focus:outline-none transition-colors duration-200"
+          onChange={(e) => {
+            setEmail(e.target.value)
+            if (errors.email) setErrors((prev) => ({ ...prev, email: "" }))
+          }}
+          disabled={loading}
+          className={`h-10 md:h-11 text-sm md:text-base border ${errors.email ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200`}
         />
+        {errors.email && (
+          <p className="text-xs text-red-500">{errors.email}</p>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -75,27 +114,46 @@ export function LoginSection({ userType, onToggleMode }: LoginSectionProps) {
           <Label htmlFor="password" className="text-sm font-medium">
             Password
           </Label>
-          <a href="#" className="text-xs md:text-sm text-primary hover:underline font-medium">
+          <button 
+            type="button"
+            onClick={handleForgotPassword}
+            className="text-xs md:text-sm text-primary hover:underline font-medium"
+          >
             Forgot password?
-          </a>
+          </button>
         </div>
-        <Input
-          id="password"
-          type="password"
-          placeholder="••••••••"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          disabled={isLoading}
-          className="h-10 md:h-11 text-sm md:text-base border border-border focus:border-primary focus:outline-none transition-colors duration-200"
-        />
+        <div className="relative">
+          <Input
+            id="password"
+            type={showPassword ? "text" : "password"}
+            placeholder="••••••••"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value)
+              if (errors.password) setErrors((prev) => ({ ...prev, password: "" }))
+            }}
+            disabled={loading}
+            className={`h-10 md:h-11 text-sm md:text-base border ${errors.password ? "border-red-500" : "border-border"} focus:border-primary focus:outline-none transition-colors duration-200 pr-10`}
+          />
+          <button
+            type="button"
+            onClick={() => setShowPassword(!showPassword)}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        </div>
+        {errors.password && (
+          <p className="text-xs text-red-500">{errors.password}</p>
+        )}
       </div>
 
       <Button
         type="submit"
-        disabled={isLoading}
+        disabled={loading}
         className="w-full h-10 md:h-11 text-sm md:text-base font-semibold rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
       >
-        {isLoading ? (
+        {loading ? (
           <>
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Signing in...
@@ -118,11 +176,11 @@ export function LoginSection({ userType, onToggleMode }: LoginSectionProps) {
         <Button
           type="button"
           variant="outline"
-          disabled={isLoading}
+          disabled={loading}
           onClick={() => handleSocialLogin("Google")}
           className="h-10 md:h-11 rounded-lg border-primary/20 hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
-          {isLoading ? (
+          {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
@@ -150,11 +208,11 @@ export function LoginSection({ userType, onToggleMode }: LoginSectionProps) {
         <Button
           type="button"
           variant="outline"
-          disabled={isLoading}
+          disabled={loading}
           onClick={() => handleSocialLogin("Facebook")}
           className="h-10 md:h-11 rounded-lg border-primary/20 hover:border-primary/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
         >
-          {isLoading ? (
+          {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" className="h-4 w-4">
