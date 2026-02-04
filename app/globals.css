@@ -222,3 +222,45 @@
     opacity: 1;
   }
 }
+
+/* Hero carousel animations */
+@keyframes scroll-up {
+  0% {
+    transform: translateY(0);
+  }
+  100% {
+    transform: translateY(-33.333%);
+  }
+}
+
+@keyframes scroll-down {
+  0% {
+    transform: translateY(-33.333%);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-scroll-up {
+  animation: scroll-up linear infinite;
+}
+
+.animate-scroll-down {
+  animation: scroll-down linear infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out forwards;
+}

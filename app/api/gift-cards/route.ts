@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import { EXTERNAL_API_BASE_URL } from "@/lib/api/auth"
 
 export async function GET(request: NextRequest) {
@@ -24,10 +25,22 @@ export async function GET(request: NextRequest) {
       )
     }
     
-    console.log("[Proxy] /api/gift-cards - Fetching type:", type)
-    
     // Get the authorization header from the incoming request
-    const authHeader = request.headers.get("authorization")
+    let authHeader = request.headers.get("authorization")
+    
+    // If no auth header, try to get token from cookie
+    if (!authHeader) {
+      const cookieStore = await cookies()
+      const tokenCookie = cookieStore.get("authToken")
+      if (tokenCookie?.value) {
+        authHeader = `Bearer ${tokenCookie.value}`
+        console.log("[Proxy] /api/gift-cards - Using token from cookie")
+      }
+    }
+    
+    console.log("[Proxy] /api/gift-cards - Fetching type:", type)
+    console.log("[Proxy] /api/gift-cards - Auth header present:", !!authHeader)
+    console.log("[Proxy] /api/gift-cards - Auth header value:", authHeader ? authHeader.substring(0, 30) + "..." : "NONE")
     
     // Build headers
     const headers: HeadersInit = {

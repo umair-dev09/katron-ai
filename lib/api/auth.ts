@@ -64,6 +64,12 @@ export interface LoginResponse {
   user: UserData;
 }
 
+// Google Login Request interface
+export interface GoogleLoginRequest {
+  idToken: string;
+  accountType: "MERCHANT" | "USER" | "ADMIN" | "SUPER_ADMIN";
+}
+
 // Custom error class for API errors
 export class AuthApiError extends Error {
   status: number;
@@ -146,6 +152,30 @@ export async function login(email: string, password: string): Promise<ApiRespons
     headers: {
       "Content-Type": "application/json",
     },
+  });
+  
+  return handleResponse<LoginResponse>(response);
+}
+
+/**
+ * Google Login
+ * POST /api/auth/google (proxied)
+ * @param idToken - Google ID token from Google Sign-In
+ * @param accountType - Account type: MERCHANT or USER
+ */
+export async function googleLogin(
+  idToken: string,
+  accountType: "MERCHANT" | "USER" | "ADMIN" | "SUPER_ADMIN"
+): Promise<ApiResponse<LoginResponse>> {
+  const response = await fetch(`${getBaseUrl()}/api/auth/google`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      idToken,
+      accountType,
+    }),
   });
   
   return handleResponse<LoginResponse>(response);
@@ -321,16 +351,49 @@ export async function changePassword(
   return handleResponse<null>(response);
 }
 
-// Local storage helpers for token management
+// Cookie helpers
+function setCookie(name: string, value: string, days: number = 5): void {
+  if (typeof window !== "undefined") {
+    const expires = new Date();
+    expires.setTime(expires.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${encodeURIComponent(value)};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
+  }
+}
+
+function getCookie(name: string): string | null {
+  if (typeof window !== "undefined") {
+    const nameEQ = `${name}=`;
+    const cookies = document.cookie.split(';');
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(nameEQ)) {
+        return decodeURIComponent(cookie.substring(nameEQ.length));
+      }
+    }
+  }
+  return null;
+}
+
+function deleteCookie(name: string): void {
+  if (typeof window !== "undefined") {
+    document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
+  }
+}
+
+// Token management - store in both localStorage and cookies
 export function saveAuthToken(token: string): void {
   if (typeof window !== "undefined") {
     localStorage.setItem("authToken", token);
+    setCookie("authToken", token, 5); // 5 days to match JWT expiry
+    console.log("[Auth] Token saved to localStorage and cookie");
   }
 }
 
 export function getAuthToken(): string | null {
   if (typeof window !== "undefined") {
-    return localStorage.getItem("authToken");
+    // Try localStorage first, then cookie
+    const token = localStorage.getItem("authToken") || getCookie("authToken");
+    return token;
   }
   return null;
 }
@@ -338,6 +401,8 @@ export function getAuthToken(): string | null {
 export function removeAuthToken(): void {
   if (typeof window !== "undefined") {
     localStorage.removeItem("authToken");
+    deleteCookie("authToken");
+    console.log("[Auth] Token removed from localStorage and cookie");
   }
 }
 

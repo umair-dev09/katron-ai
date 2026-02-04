@@ -128,7 +128,7 @@ export default function Footer({ border = false }: { border?: boolean }) {
               <li>
                 <Link
                   className="text-gray-600 transition hover:text-gray-900"
-                  href="#0"
+                  href="/terms-of-service"
                 >
                   Terms of service
                 </Link>

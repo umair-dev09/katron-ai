@@ -1,21 +1,27 @@
-import HeroHome from "@/components/hero-home"
-import BusinessCategories from "@/components/business-categories"
-import FeaturesPlanet from "@/components/features-planet"
-import HowItWorksHome from "@/components/how-it-works-home"
-import AppDownloadSection from "@/components/app-download-section"
-import LargeTestimonial from "@/components/large-testimonial"
-import Cta from "@/components/cta"
+import NewHeroSection from "@/components/landing/new-hero-section"
+import ProductsSection from "@/components/landing/products-section"
+import SpotlightSection from "@/components/landing/spotlight-section"
+import StatsSection from "@/components/landing/stats-section"
+import VideoZoomSection from "@/components/landing/video-zoom-section"
+import CTAWithImageSection from "@/components/landing/cta-with-image-section"
+import LatestArticlesSection from "@/components/landing/latest-articles-section"
+import DeveloperResourcesSection from "@/components/landing/developer-resources-section"
+import FAQSection from "@/components/landing/faq-section"
+import LandingHeader from "@/components/landing/landing-header"
 
 export default function HomePage() {
   return (
     <main className="min-h-screen">
-      <HeroHome />
-      {/* <BusinessCategories /> */}
-      <FeaturesPlanet />
-      <HowItWorksHome />
-      <AppDownloadSection />
-      <LargeTestimonial />
-      <Cta />
+      <LandingHeader />
+      <NewHeroSection />
+      <ProductsSection />
+      <SpotlightSection />
+      <StatsSection />
+      <VideoZoomSection />
+      <CTAWithImageSection />
+      <LatestArticlesSection />
+      <DeveloperResourcesSection />
+      <FAQSection />
     </main>
   )
 }

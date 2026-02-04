@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import {
   login as apiLogin,
   register as apiRegister,
+  googleLogin as apiGoogleLogin,
   verifyEmailOtp as apiVerifyEmailOtp,
   resendEmailVerificationOtp as apiResendEmailOtp,
   getCurrentUser,
@@ -39,6 +40,7 @@ interface AuthContextType {
   pendingVerificationEmail: string | null
   pendingVerificationToken: string | null
   login: (email: string, password: string) => Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }>
+  googleLogin: (idToken: string, accountType: "MERCHANT" | "USER") => Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }>
   register: (data: RegisterModel) => Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }>
   verifyEmail: (otp: string) => Promise<{ success: boolean; message?: string }>
   resendVerificationOtp: () => Promise<{ success: boolean; message?: string }>
@@ -72,22 +74,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const token = getAuthToken()
         const savedUser = getUserData()
         
+        console.log("[Auth Init] Token exists:", !!token)
+        console.log("[Auth Init] Saved user exists:", !!savedUser)
+        
         if (token && savedUser) {
-          // Validate token by fetching current user
+          // First, set the saved user immediately so UI shows logged in state
+          setUser(savedUser)
+          
+          // Then try to validate/refresh from server (don't block on this)
           try {
             const response = await getCurrentUser()
-            if (response.data) {
+            console.log("[Auth Init] getCurrentUser response:", response.status, response.message)
+            if (response.status === 200 && response.data) {
               setUser(response.data)
               saveUserData(response.data)
+              console.log("[Auth Init] User refreshed from server")
+            } else if (response.status === 401) {
+              // Token is invalid/expired - clear auth data
+              console.log("[Auth Init] Token invalid, clearing auth data")
+              clearAuthData()
+              setUser(null)
             }
+            // For other errors, keep the saved user (offline mode)
           } catch (error) {
-            // Token might be invalid or expired
-            console.error("Failed to validate token:", error)
-            clearAuthData()
+            // Network error - keep the saved user data
+            console.error("[Auth Init] Failed to validate token (keeping saved user):", error)
           }
         }
       } catch (error) {
-        console.error("Auth initialization error:", error)
+        console.error("[Auth Init] Auth initialization error:", error)
       } finally {
         setIsInitialized(true)
       }
@@ -157,6 +172,57 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
       }
       
+      const message = error instanceof AuthApiError 
+        ? error.message 
+        : "An unexpected error occurred. Please try again."
+      return { success: false, message }
+    } finally {
+      setIsLoading(false)
+    }
+  }, [setPendingVerification])
+
+  const googleLogin = useCallback(async (
+    idToken: string,
+    accountType: "MERCHANT" | "USER"
+  ): Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }> => {
+    setIsLoading(true)
+    try {
+      const response = await apiGoogleLogin(idToken, accountType)
+      
+      console.log("[GoogleLogin] Full response:", JSON.stringify(response, null, 2))
+      
+      if (response.data) {
+        const { token, user: userData } = response.data
+        
+        console.log("[GoogleLogin] Token received:", token ? token.substring(0, 50) + "..." : "NONE")
+        console.log("[GoogleLogin] User data:", JSON.stringify(userData, null, 2))
+        
+        // Check if email verification is needed (unlikely for Google login but handle anyway)
+        if (userData && !userData.emailVerified) {
+          setPendingVerification(userData.email, token)
+          return { 
+            success: false, 
+            needsVerification: true, 
+            email: userData.email,
+            message: "Please verify your email address to continue" 
+          }
+        }
+        
+        saveAuthToken(token)
+        saveUserData(userData)
+        setUser(userData)
+        
+        // Verify token was saved
+        const savedToken = getAuthToken()
+        console.log("[GoogleLogin] Token saved successfully:", !!savedToken)
+        console.log("[GoogleLogin] Saved token matches:", savedToken === token)
+        
+        return { success: true, message: "Login successful!" }
+      }
+      
+      return { success: false, message: response.message || "Google login failed. Please try again." }
+    } catch (error) {
+      console.error("[GoogleLogin] Error:", error)
       const message = error instanceof AuthApiError 
         ? error.message 
         : "An unexpected error occurred. Please try again."
@@ -456,6 +522,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         pendingVerificationEmail,
         pendingVerificationToken,
         login,
+        googleLogin,
         register,
         verifyEmail,
         resendVerificationOtp,
