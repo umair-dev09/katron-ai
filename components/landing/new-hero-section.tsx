@@ -222,16 +222,17 @@ export default function NewHeroSection() {
         </p>
           
           {/* Button with slide-in animation */}
-          <button 
+            <button 
+            onClick={() => window.location.href = '/auth'}
             className={`bg-[#0066FF] hover:bg-[#0052CC] text-white font-semibold px-6 sm:px-8 py-3 sm:py-3 rounded-lg text-sm sm:text-base md:text-lg transition-all duration-500 ease-out hover:shadow-lg hover:shadow-blue-500/30 hover:scale-[1.02] active:scale-[0.98] ${
               showContent 
-                ? "opacity-100 translate-y-0" 
-                : "opacity-0 translate-y-8"
+              ? "opacity-100 translate-y-0" 
+              : "opacity-0 translate-y-8"
             }`}
             style={{ borderRadius: '8px' }}
-          >
+            >
             Get Started
-          </button>
+            </button>
         </div>
 
         {/* ===== RIGHT SIDE IMAGE COLUMNS ===== */}
