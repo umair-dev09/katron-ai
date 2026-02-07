@@ -21,7 +21,7 @@ export default function DefaultLayout({
       easing: "ease-out-cubic",
     });
   });
-
+ 
   return (
     <>
       <Header />
