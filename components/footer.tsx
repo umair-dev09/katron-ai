@@ -48,14 +48,14 @@ export default function Footer() {
         <div className="grid gap-10 py-12 sm:grid-cols-12 md:py-16">
           {/* Brand section */}
           <div className="space-y-4 sm:col-span-12 lg:col-span-4">
-            <div className="-ml-7 -mt-3 -mb-3">
+            <div className="-ml-1 -mt-3 -mb-3">
               <Link href="/" className="inline-block">
                 <Image
-                  src="/ktn-logo.png"
+                  src="/katron-ai-logo-bg-transparent.png"
                   alt="Logo"
                   width={128}
                   height={64}
-                  className="h-[70px] w-32"
+                  className="h-24 w-24"
                 />
               </Link>
             </div>

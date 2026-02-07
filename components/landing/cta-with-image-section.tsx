@@ -33,9 +33,9 @@ export default function CTAWithImageSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative bg-black py-10 md:py-42 lg:pb-40 overflow-hidden"
+      className="relative bg-black py-10 md:py-42 lg:pb-40"
     >
-      <div className="container mx-auto px-2 md:px-2 lg:px-2">
+      <div className="container mx-auto px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Right Side - Content (First on mobile, Second on desktop) */}
           <div

@@ -47,7 +47,7 @@ export default function VideoZoomSection() {
   return (
     <section 
       ref={sectionRef}
-      className="relative bg-black  -my-12 md:py-32 lg:py-48 overflow-hidden"
+      className="relative bg-black -my-12 md:py-32 lg:py-48 px-16 sm:px-20 md:px-28 lg:px-40 xl:px-52"
     >
       {/* Background Text with Layers */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">

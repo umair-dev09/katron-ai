@@ -56,8 +56,8 @@ export default function StatsSection() {
   }, [isVisible])
 
   return (
-    <section ref={sectionRef} className="relative bg-black py-20 md:py-32 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-6xl mx-auto">
+    <section ref={sectionRef} className="relative bg-black py-20 md:py-32 px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40">
+      <div className="max-w-4xl mx-auto">
         {/* Stats Card */}
         <div 
           className={`relative border border-white rounded-3xl md:rounded-[3rem] p-12 md:p-16 lg:p-20 text-center transition-all duration-700 ease-out ${

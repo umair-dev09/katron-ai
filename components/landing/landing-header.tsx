@@ -32,11 +32,11 @@ export default function LandingHeader() {
               className="flex items-center space-x-2 hover:opacity-80 transition-opacity"
             >
               <Image
-                src="/ktn-logo.png"
+                src="/katron-ai-logo-bg-transparent.png"
                 alt="Katron AI"
                 width={130}
                 height={52}
-                className="h-[53px] w-auto object-contain brightness-0 invert"
+                className="h-[53px] w-auto object-contain"
                 priority
               />
             </button>

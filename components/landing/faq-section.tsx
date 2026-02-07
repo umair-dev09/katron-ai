@@ -73,7 +73,7 @@ export default function FAQSection() {
       ref={sectionRef}
       className="relative bg-[#F3F4F6] pb-16 md:pb-24 lg:pb-32 overflow-hidden"
     >
-      <div className="container mx-auto px-4 md:px-8 lg:px-12 max-w-4xl">
+      <div className="container mx-auto px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40 max-w-4xl">
         {/* Section Header */}
         <h2
           className={`text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-12 md:mb-16 text-center transition-all duration-1000 ${

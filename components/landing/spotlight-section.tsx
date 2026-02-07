@@ -36,8 +36,8 @@ export default function SpotlightSection() {
   }, [])
 
   return (
-    <section ref={sectionRef} className="relative bg-black py-24 md:py-36 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <section ref={sectionRef} className="relative bg-black py-24 md:py-36 px-8 sm:px-12 md:px-20 lg:px-36 xl:px-44 mx-12">
+      <div className="max-w-5xl mx-auto">
         {/* Mobile Layout - Stacked and Centered */}
         <div className="md:hidden text-center">
           {/* Badge */}

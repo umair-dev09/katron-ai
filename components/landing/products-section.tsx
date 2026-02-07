@@ -129,8 +129,8 @@ export default function ProductsSection() {
   const currentProduct = products[activeProduct]
 
   return (
-    <section ref={sectionRef} className="relative bg-black pt-20 md:pt-32 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
+    <section ref={sectionRef} className="relative bg-black pt-20 md:pt-32 px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40">
+      <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <h2 
           className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium text-white uppercase tracking-tight leading-[0.95] text-center mb-6 md:mb-8 transition-all duration-700 ease-out ${
