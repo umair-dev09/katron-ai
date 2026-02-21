@@ -4,7 +4,7 @@ export default function PrivacyPolicyPage() {
   return (
     <main className="min-h-screen bg-white">
       
-      {/* Hero Section */}}
+      {/* Hero Section */}
       <section className="pt-32 md:pt-40 pb-12 md:pb-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-gray-900 mb-4">
