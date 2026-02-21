@@ -3,7 +3,6 @@
 import { use } from "react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
-import LandingHeader from "@/components/landing/landing-header"
 import RewardItemHero from "@/components/rewards/reward-item-hero"
 import RewardItemInfo from "@/components/rewards/reward-item-info"
 import RewardItemFAQ from "@/components/rewards/reward-item-faq"
@@ -52,8 +51,6 @@ export default function RewardItemPage({ params }: PageProps) {
 
   return (
     <main className="bg-white">
-      {/* Header */}
-      <LandingHeader />
 
       {/* Brand Card Section */}
       <section className="relative pt-32 md:pt-40 pb-8 md:pb-12 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-gray-50 to-gray-100">

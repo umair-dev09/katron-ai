@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
+import Link from "next/link"
 
 interface Resource {
   id: number
@@ -13,24 +14,24 @@ interface Resource {
 const resources: Resource[] = [
   {
     id: 1,
-    date: "MAY 7, 2024",
-    title: "Get started",
-    description: "Learn how to embed a form in your website or application to accept payments from your customers. We'll walk you through a payment flow using our Frames product, which collects card details through an iframe.",
-    link: "#",
+    date: "FEB 21, 2026",
+    title: "Quick Start Guide",
+    description: "Get up and running with the KTN Gift Card Merchant API in minutes. Create your API profile, retrieve your API key, and make your first gift card purchase with step-by-step instructions and ready-to-use code examples.",
+    link: "/api-docs#create-profile",
   },
   {
     id: 2,
-    date: "MAY 7, 2024",
-    title: "Use the dashboard",
-    description: "The Dashboard is your single source for monitoring and analyzing all your payments. Get your key performance indicators, payment history, details and analytics – all in one place.",
-    link: "#",
+    date: "FEB 21, 2026",
+    title: "API Reference",
+    description: "Explore the full Merchant API reference — list gift cards, purchase them programmatically, manage orders, retrieve credentials, handle refunds and voids. Includes request/response schemas and all endpoint details.",
+    link: "/api-docs#gift-cards",
   },
   {
     id: 3,
-    date: "MAY 7, 2024",
-    title: "Payments",
-    description: "Integrate with Checkout.com's various payment services.",
-    link: "#",
+    date: "FEB 21, 2026",
+    title: "Authentication & Security",
+    description: "Learn how Bearer token authentication works with the KTN API. Understand how to create your Merchant API profile, secure your API key, configure your charge type, and manage token lifecycle including reissuance.",
+    link: "/api-docs#authentication",
   },
 ]
 
@@ -66,7 +67,7 @@ export default function DeveloperResourcesSection() {
       ref={sectionRef}
       className="relative bg-[#F3F4F6] py-16 md:py-24 lg:pb-32 overflow-hidden"
     >
-      <div className="container mx-auto px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40">
+      <div className="container mx-auto">
         {/* Section Header */}
         <h2
           className={`text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-12 md:mb-16 text-center transition-all duration-1000 ${
@@ -87,9 +88,10 @@ export default function DeveloperResourcesSection() {
           }`}
         >
           {resources.map((resource) => (
-            <article
+            <Link
               key={resource.id}
-              className="group bg-white rounded-2xl p-6 md:p-8 flex flex-col min-h-[380px] border-2 border-transparent hover:border-purple-400 hover:scale-101 hover:-translate-y-2 transition-all duration-300 cursor-pointer"
+              href={resource.link}
+              className="group bg-white rounded-2xl p-6 md:p-8 flex flex-col min-h-[380px] border-2 border-transparent hover:border-purple-400 hover:scale-101 hover:-translate-y-2 transition-all duration-300 cursor-pointer no-underline"
             >
               {/* Date Badge */}
               <span className="inline-block w-fit px-4 py-1.5 bg-purple-500 text-white text-xs font-bold rounded-md mb-5 tracking-wider">
@@ -109,10 +111,7 @@ export default function DeveloperResourcesSection() {
               {/* Divider and Learn More */}
               <div className="mt-auto pt-6">
                 <div className="border-t border-gray-200 mb-4"></div>
-                <a
-                  href={resource.link}
-                  className="inline-flex items-center text-base font-bold text-gray-900 hover:text-purple-600 transition-colors duration-200"
-                >
+                <span className="inline-flex items-center text-base font-bold text-gray-900 group-hover:text-purple-600 transition-colors duration-200">
                   Learn more
                   <svg
                     className="w-4 h-4 ml-2"
@@ -127,9 +126,9 @@ export default function DeveloperResourcesSection() {
                       d="M17 8l4 4m0 0l-4 4m4-4H3"
                     />
                   </svg>
-                </a>
+                </span>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
       </div>

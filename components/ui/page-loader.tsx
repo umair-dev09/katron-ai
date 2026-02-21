@@ -8,13 +8,15 @@ interface PageLoaderProps {
   fullScreen?: boolean
   className?: string
   showLogo?: boolean
+  logoSrc?: string
 }
 
 export function PageLoader({ 
   message = "Loading...", 
   fullScreen = true,
   className,
-  showLogo = true
+  showLogo = true,
+  logoSrc = "/ktn-logo.png"
 }: PageLoaderProps) {
   return (
     <div 
@@ -28,7 +30,7 @@ export function PageLoader({
       {showLogo && (
         <div className="mb-6 animate-pulse">
           <Image
-            src="/ktn-logo.png"
+            src={logoSrc}
             alt="Katron AI"
             width={140}
             height={60}

@@ -79,7 +79,7 @@ export function AuthGuard({
 // Convenience wrapper for guest-only pages (auth pages)
 export function GuestGuard({ 
   children, 
-  redirectTo = "/" 
+  redirectTo = "/buy" 
 }: { 
   children: React.ReactNode
   redirectTo?: string 

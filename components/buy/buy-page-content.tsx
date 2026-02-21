@@ -173,7 +173,7 @@ export default function BuyPageContent() {
   const showTypeBadge = showLoopFilters
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background pt-24 md:pt-28">
       {/* Header and Search */}
       <SearchAndFilters
         searchTerm={searchTerm}

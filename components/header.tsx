@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useRouter, usePathname } from "next/navigation"
 import Image from "next/image"
-import { Menu, X, User, Settings, LogOut, Gift, Search } from "lucide-react"
+import { Menu, X, User, Settings, LogOut, Gift, Search, Key } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -184,6 +184,15 @@ export default function Header() {
                     <Settings className="w-[18px] h-[18px] mr-[6px]" />
                     <span className="text-[15px] font-[480]">Settings</span>
                   </DropdownMenuItem>
+                  {user?.accountType === "MERCHANT" && (
+                    <DropdownMenuItem 
+                      onClick={() => router.push("/merchant-api")} 
+                      className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 focus:bg-gray-100 dark:focus:bg-gray-800 rounded-lg py-3 px-3"
+                    >
+                      <Key className="w-[18px] h-[18px] mr-[6px]" />
+                      <span className="text-[15px] font-[480]">API Profile</span>
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem 
                     onClick={handleLogout} 
@@ -276,6 +285,16 @@ export default function Header() {
                           <Settings className="w-4 h-4 mr-2" />
                           Settings
                         </Button>
+                        {user?.accountType === "MERCHANT" && (
+                          <Button
+                            onClick={() => router.push("/merchant-api")}
+                            variant="outline"
+                            className="w-full h-11 justify-start font-medium hover:bg-gray-50 dark:hover:bg-gray-900/20"
+                          >
+                            <Key className="w-4 h-4 mr-2" />
+                            API Profile
+                          </Button>
+                        )}
                         <Button
                           onClick={handleLogout}
                           variant="outline"

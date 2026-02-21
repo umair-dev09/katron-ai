@@ -13,7 +13,7 @@ export default function SettingsPageContent() {
   const { user, isLoading } = useAuth()
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background pt-24 md:pt-28">
       {/* Header */}
       {/* <div className="bg-background border-b border-border">
         <div className="max-w-4xl mx-auto px-4 md:px-8 py-6">

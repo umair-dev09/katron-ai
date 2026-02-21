@@ -47,7 +47,7 @@ export default function VideoZoomSection() {
   return (
     <section 
       ref={sectionRef}
-      className="relative bg-black -my-12 md:py-32 lg:py-48 px-16 sm:px-20 md:px-28 lg:px-40 xl:px-52"
+      className="relative bg-black -my-12 md:py-32 lg:py-48 "
     >
       {/* Background Text with Layers */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
@@ -61,7 +61,7 @@ export default function VideoZoomSection() {
             paintOrder: 'stroke fill',
           }}
         >
-          PERFORMANCE
+          KATRON-------AI
         </h2>
       </div>
 
@@ -83,7 +83,7 @@ export default function VideoZoomSection() {
             <iframe
               className="absolute inset-0 w-full h-full"
               src="https://www.youtube.com/embed/bVCRcNlY1yw?si=v9ONTfdkXP67XTeO&amp;controls=0&amp;autoplay=1&amp;mute=1&amp;loop=1&amp;playlist=bVCRcNlY1yw&amp;modestbranding=1&amp;rel=0&amp;showinfo=0"
-              title="Performance Video"
+              title="Katron AI Video"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />

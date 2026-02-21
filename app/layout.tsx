@@ -4,7 +4,7 @@ import { Geist, Geist_Mono } from "next/font/google"
 import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "sonner"
 import ConditionalHeader from "@/components/conditional-header"
-import Footer from "@/components/footer"
+import ConditionalFooter from "@/components/conditional-footer"
 import AOS from "@/components/aos"
 import { AuthProvider } from "@/lib/auth-context"
 import { GoogleOAuthProvider } from "@/components/google-oauth-provider"
@@ -33,7 +33,7 @@ export default function RootLayout({
             <AOS />
             <ConditionalHeader />
             {children}
-            <Footer />
+            <ConditionalFooter />
             <Toaster position="top-center" richColors />
             <Analytics />
           </GoogleOAuthProvider>

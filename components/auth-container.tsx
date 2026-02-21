@@ -70,11 +70,11 @@ export function AuthContainer({ initialMode }: AuthContainerProps) {
   }, [])
 
   const handleVerificationSuccess = useCallback(() => {
-    router.push("/")
+    router.push("/buy")
   }, [router])
 
   const handleLoginSuccess = useCallback(() => {
-    router.push("/")
+    router.push("/buy")
   }, [router])
 
   const handleBackToLogin = useCallback(() => {

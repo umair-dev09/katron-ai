@@ -23,6 +23,7 @@ export default function Footer() {
     support: [
       { label: "Help Center", href: "#help" },
       { label: "Contact Us", href: "#contact" },
+      { label: "API Documentation", href: "/api-docs" },
       { label: "FAQs", href: "#faqs" },
       { label: "Refund Policy", href: "#refund" },
     ],

@@ -35,7 +35,7 @@ export default function CTAWithImageSection() {
       ref={sectionRef}
       className="relative bg-black py-10 md:py-42 lg:pb-40"
     >
-      <div className="container mx-auto px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-20">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Right Side - Content (First on mobile, Second on desktop) */}
           <div
@@ -47,16 +47,38 @@ export default function CTAWithImageSection() {
           >
             <div className="max-w-xl lg:max-w-none">
               <h2 className="text-2xl md:text-3xl lg:text-5xl font-semibold Arial text-white mb-6 leading-tight">
-SCHEDULE YOUR PERSONALIZED DEMO TODAY             </h2>
+LETS SEE WHAT KATRON AI CAN DO FOR YOU             </h2>
 
-              <p className="text-md md:text-xl text-white mb-8 leading-relaxed">
-                Our payments experts are here to help you make money move. Where innovation meets reliability. Welcome to Katron AI
-              </p>
+                <p className="text-md md:text-lg text-gray-300 mb-8 leading-relaxed">
+                In 15 minutes, we'll show you:
+                </p>
+                <ul className="text-md md:text-lg text-gray-300 mb-8 space-y-3 leading-relaxed">
+                <li className="flex items-start gap-3">
+                  <span className="text-[#9333EA] font-bold mt-[1px]">•</span>
+                  <span className="mt-[2px]">How the merchant marketplace works</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#9333EA] font-bold mt-[1px]">•</span>
+                  <span className="mt-[2px]">How rewards connect to transactions</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#9333EA] font-bold mt-[1px]">•</span>
+                  <span className="mt-[2px]">How gift cards drive growth</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#9333EA] font-bold mt-[1px]">•</span>
+                  <span className="mt-[2px]">How your existing POS integrates</span>
+                </li>
+                </ul>
+                <p className="text-md md:text-lg text-gray-300 mb-8 leading-relaxed">
+                If it's not the right fit, we'll tell you. No pressure. Just clarity.
+                </p>
 
-              <button className="group relative px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-md lg:text-lg font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
-                Get in touch
+              <button className="group relative px-8 py-3 bg-[#9333EA] hover:bg-[#7e22ce] text-white text-md lg:text-lg font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                Book a Demo
                 <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></span>
               </button>
+              <span className="block mt-2 text-gray-400 text-[13px]">15 minutes. Real answers. Zero fluff.</span>
             </div>
           </div>
 
@@ -70,10 +92,10 @@ SCHEDULE YOUR PERSONALIZED DEMO TODAY             </h2>
           >
             <div className="relative w-full aspect-square max-w-[600px] mx-auto lg:mx-0">
               <Image
-                src="/images/t1.png"
+                src="/book-a-demo.png"
                 alt="Performance Visualization"
                 fill
-                className="object-contain"
+                className="object-cover"
                 priority
               />
             </div>

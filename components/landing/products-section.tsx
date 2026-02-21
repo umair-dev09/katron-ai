@@ -4,77 +4,89 @@ import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
 
 const products = [
-    {
-        id: "connect",
-        label: "CONNECT",
-        title: "Integrate without the friction",
-        description: (
-            <>
-                <div className="mb-3">
-                    <strong className="font-semibold">Post-Purchase Intelligence:</strong> Turn every checkout into a starting point for customer data and future engagement.
-                </div>
-                <div className="mb-3">
-                    <strong className="font-semibold">API-Ready Gifting:</strong> Instantly deploy a production-ready marketplace for branded digital gift cards.
-                </div>
-                <div>
-                    <strong className="font-semibold">Agile Setup:</strong> Switch between manual management and full API automation as your business grows.
-                </div>
-            </>
-        ),
-        image: "/images/pt-1.png"
-    },
-    {
-        id: "move",
-        label: "MOVE",
-        title: "Power every purchase with speed and security",
-        description: (
-            <>
-                <div className="mb-3">
-                    <strong className="font-semibold">Omnichannel Mastery:</strong> Secure payment processing with transparent, competitive interchange-plus pricing.
-                </div>
-                <div className="mb-3">
-                    <strong className="font-semibold">Instant Gratification:</strong> Automated delivery of gift codes via email or PDF ensures your customers never have to wait.
-                </div>
-                <div>
-                    <strong className="font-semibold">Precision Hardware:</strong> Sleek, retail-ready POS terminals tailored for the high-volume demands of restaurants and storefronts.
-                </div>
-            </>
-        ),
-        image: "/images/pt-2.png"
-    },
-    {
-        id: "boost",
-        label: "BOOST",
-        title: "Incentivize the next visit before they leave the store",
-        description: (
-            <>
-                <div className="mb-3">
-                    <strong className="font-semibold">Intelligent Rewards:</strong> A closed-loop digital engine that issues rewards based on your specific rules and customer behavior.
-                </div>
-                <div className="mb-3">
-                    <strong className="font-semibold">Gift-Driven Acquisition:</strong> Use digital gifting to attract new customers and reward your most loyal fans.
-                </div>
-                <div>
-                    <strong className="font-semibold">Actionable Insights:</strong> Turn raw transaction data into retention strategies with real-time analytics dashboards.
-                </div>
-            </>
-        ),
-        image: "/images/pt-3.png"
-    },
-    // {
-    //     id: "protect",
-    //     label: "PROTECT",
-    //     title: "Master fraud, risk and compliance",
-    //     description: "Advanced fraud detection and risk management tools keep your business secure. Real-time monitoring and automated compliance checks.",
-    //     image: "/images/product-protect.png"
-    // },
-    // {
-    //     id: "manage",
-    //     label: "MANAGE",
-    //     title: "Complete payment management",
-    //     description: "Unified dashboard for all your payment operations. Monitor, analyze, and optimize your entire payment infrastructure from one place.",
-    //     image: "/images/product-manage.png"
-    // }
+  {
+    id: "INTEGRATE",
+    label: "INTEGRATE",
+    title: "Plug in seamlessly, no headaches",
+    description: (
+      <>
+        <p className="mb-3">Plug Katron AI into your existing POS or checkout — no new hardware, no heavy development.</p>
+        <p className="mb-3">Behind the scenes, your merchant profile, products, categories, and terminals are connected to the Katron marketplace engine.</p>
+        <p className="font-medium">Within 24 hours, you're live — reward-ready and marketplace-visible.</p>
+      </>
+    ),
+    image: "/integrate.png"
+  },
+  {
+    id: "ACTIVATE",
+    label: "ACTIVATE",
+    title: "Reward your customers right away",
+    description: (
+      <>
+        <p className="mb-3">The moment a customer pays, KTN-R Digital Rewards are triggered automatically.</p>
+        <p className="mb-3">Our reward engine connects: Products → Categories → Discounts → Rewards → Transactions.</p>
+        <p className="mb-3">No loyalty cards to scan. No codes to enter. The reward logic lives inside the transaction itself.</p>
+        <p className="font-medium">Invisible to the process. Visible to the customer.</p>
+      </>
+    ),
+    image: "/activate.png"
+  },
+  {
+    id: "DISCOVER",
+    label: "DISCOVER",
+    title: "Turn shoppers into repeat visitors",
+    description: (
+      <>
+        <p className="mb-3">Your business becomes part of the Katron AI Merchant Marketplace.</p>
+        <p className="mb-3">Customers browse nearby or categorized merchants, view live discounts and offers, and discover product-level and category-level deals — then select and redeem rewards seamlessly.</p>
+        <p className="mb-3">Merchants manage products and discounts. Users explore and redeem.</p>
+        <p className="font-medium">Two sides. One marketplace.</p>
+      </>
+    ),
+    image: "/discover.png"
+  },
+  {
+    id: "EXPAND",
+    label: "EXPAND",
+    title: "Grow revenue with digital gift cards",
+    description: (
+      <>
+        <p className="mb-3">Launch a digital gift card storefront directly inside your merchant profile.</p>
+        <p className="mb-3">Or let customers send gift cards from 100+ premium brands.</p>
+        <p className="mb-3">Every gift card sold generates upfront revenue, introduces new customers, and feeds into the reward ecosystem.</p>
+        <p className="font-medium">Gift cards aren't separate from payments — they're part of the growth loop.</p>
+      </>
+    ),
+    image: "/expand.png"
+  },
+  {
+    id: "OPTIMIZE",
+    label: "OPTIMIZE",
+    title: "Gain real-time business insights",
+    description: (
+      <>
+        <p className="mb-3">One dashboard. Every transaction.</p>
+        <p className="mb-3">Track reward issuance, gift card sales, returning customers, product performance, and discount usage — because every action in the marketplace is recorded at the transaction level.</p>
+        <p className="mb-3">Insights are immediate and actionable.</p>
+        <p className="font-medium">No analytics degree required.</p>
+      </>
+    ),
+    image: "/optimize.png"
+  },
+  {
+    id: "PROTECT",
+    label: "PROTECT",
+    title: "Security you can trust",
+    description: (
+      <>
+        <p className="mb-3">256-bit encryption. PCI DSS compliance.</p>
+        <p className="mb-3">Automated fraud detection and 24/7 monitoring protect every product, discount, reward, and transaction at the infrastructure level.</p>
+        <p className="mb-3">Commerce should feel effortless — but security should never be optional.</p>
+        <p className="font-medium">Your customers' data is protected. Always.</p>
+      </>
+    ),
+    image: "/protect.png"
+  }
 ]
 
 export default function ProductsSection() {
@@ -113,10 +125,10 @@ export default function ProductsSection() {
   }, [])
 
   useEffect(() => {
-    // Auto-rotate through products every 4 seconds
+    // Auto-rotate through products every 8 seconds
     const interval = setInterval(() => {
       setActiveProduct((prev) => (prev + 1) % products.length)
-    }, 4000)
+    }, 8000)
 
     return () => clearInterval(interval)
   }, [])
@@ -129,7 +141,7 @@ export default function ProductsSection() {
   const currentProduct = products[activeProduct]
 
   return (
-    <section ref={sectionRef} className="relative bg-black pt-20 md:pt-32 px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40">
+    <section id="products" ref={sectionRef} className="relative bg-black pt-20 md:pt-32">
       <div className="max-w-5xl mx-auto">
         {/* Heading */}
         <h2 
@@ -141,30 +153,30 @@ export default function ProductsSection() {
             letterSpacing: "-0.02em",
           }}
         >
-          <span className="block">A Modular Ecosystem.</span>
-          <span className="block"> Built for Scale.</span>
+          {/* <span className="block">KNOW US WELL</span> */}
+          <span className="block"> More Than a Payment Processor</span>
         </h2>
 
         {/* Description */}
         <p className={`text-white text-sm sm:text-base md:text-lg max-w-2xl mx-auto text-center mb-12 md:mb-16 leading-relaxed transition-all duration-700 ease-out delay-100 ${
           isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}>
-          Stop juggling fragmented tools. Katron AI unifies your payments, loyalty rewards, and digital gifting into a single, high-performance experience.
+Katron AI is a reward-enabled commerce layer. We sit on top of your existing payment flow and turn every transaction into an opportunity rewards for customers, retention for merchants, and gift cards that move between both.
         </p>
 
         {/* Product Chips */}
-        <div className={`flex justify-center mb-12 md:mb-16 transition-all duration-700 ease-out delay-200 ${
+        <div className={`flex justify-center mb-12 md:mb-16 px-4 transition-all duration-700 ease-out delay-200 ${
           showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
         }`}>
-          <div className="inline-flex flex-wrap items-center justify-center gap-3 md:gap-0 bg-transparent md:bg-gray-800/80 md:backdrop-blur-sm rounded-full p-0 md:p-1.5">
+          <div className="relative inline-flex flex-wrap items-center justify-center gap-2 md:gap-1 bg-transparent md:bg-white/[0.04] md:border md:border-white/[0.08] md:backdrop-blur-xl rounded-2xl p-0 md:p-1.5">
             {products.map((product, index) => (
               <button
                 key={product.id}
                 onClick={() => setActiveProduct(index)}
-                className={`px-5 md:px-6 lg:px-8 py-2.5 md:py-3 rounded-full text-xs sm:text-sm md:text-sm font-bold uppercase tracking-wide transition-all duration-300 ${
+                className={`relative px-5 md:px-6 lg:px-8 py-2.5 md:py-2.5 rounded-xl text-xs sm:text-sm md:text-sm font-semibold uppercase tracking-wider transition-all duration-400 ease-out ${
                   activeProduct === index
-                    ? "bg-[#b4ff00] text-bold"
-                    : "bg-gray-800/80 md:bg-transparent text-white hover:bg-gray-700/50"
+                    ? "bg-[#9333EA] text-white shadow-lg shadow-purple-500/25"
+                    : "bg-white/[0.06] md:bg-transparent text-white/60 hover:text-white hover:bg-white/[0.08]"
                 }`}
               >
                 {product.label}
@@ -186,60 +198,37 @@ export default function ProductsSection() {
           </h3>
 
           {/* Mobile View - Stacked */}
-          <div key={`mobile-${contentKey}`} className="md:hidden space-y-8 animate-fade-in">
+          <div key={`mobile-${contentKey}`} className="md:hidden space-y-6 animate-fade-in">
             {/* Illustration */}
-            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-black transform transition-transform duration-500 hover:scale-[1.02]">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-16 h-16 mx-auto mb-3 rounded-xl bg-gray-700/50 flex items-center justify-center">
-                    <svg className="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <span className="text-gray-500 text-sm font-medium">Product Illustration</span>
-                </div>
-              </div>
-              {/* Uncomment when images are ready */}
+            <div className="relative w-full aspect-[16/10] rounded-2xl overflow-hidden bg-gray-900/50 border border-gray-800/50 transform transition-transform duration-500 hover:scale-[1.02] shadow-xl">
               <Image
                 src={currentProduct.image}
                 alt={currentProduct.title}
                 fill
-                className="object-cover p-2"
+                className="object-cover"
               />
-             
             </div>
 
             {/* Description */}
-            <div className="text-white text-sm sm:text-base leading-relaxed text-center">
+            <div className="text-white/90 text-sm sm:text-base leading-relaxed text-left px-2">
               {currentProduct.description}
             </div>
           </div>
 
           {/* Desktop View - Side by Side */}
-          <div key={`desktop-${contentKey}`} className="hidden md:grid md:grid-cols-2 gap-12 items-center animate-fade-in">
+          <div key={`desktop-${contentKey}`} className="hidden md:grid md:grid-cols-2 gap-10 lg:gap-14 items-start animate-fade-in">
             {/* Illustration */}
-            <div className="relative w-full aspect-square rounded-2xl overflow-hidden bg-black transform transition-transform duration-500 hover:scale-[1.02]">
-              {/* <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center">
-                  <div className="w-20 h-20 mx-auto mb-4 rounded-xl bg-black flex items-center justify-center">
-                    <svg className="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <span className="text-gray-500 text-sm font-medium">Product Illustration</span>
-                </div>
-              </div> */}
+            <div className="relative w-full aspect-[4/3] rounded-2xl overflow-hidden bg-gray-900/50 border border-gray-800/50 transform transition-transform duration-500 hover:scale-[1.02] shadow-2xl">
               <Image
                 src={currentProduct.image}
                 alt={currentProduct.title}
                 fill
-                className="object-cover "
+                className="object-cover"
               />
-             
             </div>
 
             {/* Description */}
-            <div>
+            <div className="flex flex-col justify-center h-full py-4">
               <div className="text-white/90 text-base md:text-lg leading-relaxed">
                 {currentProduct.description}
               </div>

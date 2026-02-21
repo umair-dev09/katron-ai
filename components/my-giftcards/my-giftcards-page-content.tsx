@@ -91,7 +91,7 @@ export default function MyGiftCardsPageContent() {
   }, [fetchOrders])
 
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background pt-24 md:pt-28">
       {/* Header and Search */}
       <SearchAndHeader 
         searchTerm={searchTerm} 

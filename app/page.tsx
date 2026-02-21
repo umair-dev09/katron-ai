@@ -7,26 +7,20 @@ import CTAWithImageSection from "@/components/landing/cta-with-image-section"
 import LatestArticlesSection from "@/components/landing/latest-articles-section"
 import DeveloperResourcesSection from "@/components/landing/developer-resources-section"
 import FAQSection from "@/components/landing/faq-section"
-import LandingHeader from "@/components/landing/landing-header"
-import SideCarousel from "@/components/landing/side-carousel"
+import SliderSection from "@/components/landing/slider-section"
+import ArcCarouselSection from "@/components/landing/arc-carousel-section"
 
 export default function HomePage() {
   return (
-    <main className="min-h-screen bg-black overflow-x-hidden">
-      <LandingHeader />
-      
-      {/* Sections with side carousels */}
-      <div className="relative overflow-x-clip">
-        <NewHeroSection />
-        <ProductsSection />
+    <main className="w-full min-h-screen bg-black overflow-x-hidden">
+      <NewHeroSection />
+      <SliderSection />
+      <ProductsSection />
         <SpotlightSection />
-        <StatsSection />
+        <ArcCarouselSection />
         <VideoZoomSection />
         <CTAWithImageSection />
-        
-        {/* Side carousels - only visible in above sections */}
-        <SideCarousel />
-      </div>
+      {/* </div> */}
       
       {/* Sections without carousels */}
       <LatestArticlesSection />

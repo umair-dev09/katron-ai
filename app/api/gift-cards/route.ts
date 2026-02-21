@@ -25,6 +25,9 @@ export async function GET(request: NextRequest) {
       )
     }
     
+    // Map frontend type values to backend GiftCardType enum values (API enum: OPEN, CLOSE)
+    const backendType = type === "open" ? "OPEN" : "CLOSE"
+    
     // Get the authorization header from the incoming request
     let authHeader = request.headers.get("authorization")
     
@@ -38,7 +41,7 @@ export async function GET(request: NextRequest) {
       }
     }
     
-    console.log("[Proxy] /api/gift-cards - Fetching type:", type)
+    console.log("[Proxy] /api/gift-cards - Fetching type:", type, "-> backend:", backendType)
     console.log("[Proxy] /api/gift-cards - Auth header present:", !!authHeader)
     console.log("[Proxy] /api/gift-cards - Auth header value:", authHeader ? authHeader.substring(0, 30) + "..." : "NONE")
     
@@ -51,9 +54,9 @@ export async function GET(request: NextRequest) {
       headers["Authorization"] = authHeader
     }
     
-    // Make request to external API
+    // Make request to external API with mapped enum value
     const response = await fetch(
-      `${EXTERNAL_API_BASE_URL}/api/giftCards/listAllGiftCards?type=${type}`,
+      `${EXTERNAL_API_BASE_URL}/api/giftCards/listAllGiftCards?type=${backendType}`,
       {
         method: "GET",
         headers,

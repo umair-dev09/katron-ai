@@ -150,7 +150,7 @@ export default function LatestArticlesSection() {
           borderTopRightRadius: "40px",
         }}
     >
-      <div className="px-8 sm:px-12 md:px-20 lg:px-32 xl:px-40">
+      <div>
         {/* Section Header */}
         <h2
           className={`text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-12 md:mb-16 text-center md:text-center transition-all duration-1000 ${
