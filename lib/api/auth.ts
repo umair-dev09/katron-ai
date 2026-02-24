@@ -125,7 +125,7 @@ function getAuthHeaders(): HeadersInit {
  * Register a new user
  * POST /api/auth/register (proxied)
  */
-export async function register(data: RegisterModel): Promise<ApiResponse<UserData>> {
+export async function register(data: RegisterModel): Promise<ApiResponse<LoginResponse>> {
   const response = await fetch(`${getBaseUrl()}/api/auth/register`, {
     method: "POST",
     headers: {
@@ -134,7 +134,7 @@ export async function register(data: RegisterModel): Promise<ApiResponse<UserDat
     body: JSON.stringify(data),
   });
   
-  return handleResponse<UserData>(response);
+  return handleResponse<LoginResponse>(response);
 }
 
 /**
@@ -185,7 +185,7 @@ export async function googleLogin(
  * Verify email OTP
  * POST /api/auth/verify-email-otp (proxied)
  */
-export async function verifyEmailOtp(otp: string): Promise<ApiResponse<UserData>> {
+export async function verifyEmailOtp(otp: string): Promise<ApiResponse<LoginResponse>> {
   const params = new URLSearchParams({ otp });
   
   const response = await fetch(`${getBaseUrl()}/api/auth/verify-email-otp?${params.toString()}`, {
@@ -193,7 +193,7 @@ export async function verifyEmailOtp(otp: string): Promise<ApiResponse<UserData>
     headers: getAuthHeaders(),
   });
   
-  return handleResponse<UserData>(response);
+  return handleResponse<LoginResponse>(response);
 }
 
 /**

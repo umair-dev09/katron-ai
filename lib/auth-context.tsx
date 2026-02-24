@@ -163,7 +163,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const errorMessage = error instanceof AuthApiError ? error.message : ""
       
       // Check if error indicates email verification needed
-      if (errorMessage.toLowerCase().includes("verify") || errorMessage.toLowerCase().includes("email not verified")) {
+      if (
+        errorMessage.toLowerCase().includes("verify") || 
+        errorMessage.toLowerCase().includes("email not verified") ||
+        errorMessage.toLowerCase().includes("not active")
+      ) {
         return { 
           success: false, 
           needsVerification: true, 
@@ -237,18 +241,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await apiRegister(data)
       
-      // Check if registration was successful (status 200 or message indicates success)
-      if (response.status === 200 || response.message?.toLowerCase().includes("success") || response.message?.toLowerCase().includes("otp")) {
-        // Registration successful - now try to login to get the token for verification
-        try {
-          const loginResponse = await apiLogin(data.email, data.password)
-          if (loginResponse.data) {
-            const { token } = loginResponse.data
-            setPendingVerification(data.email, token)
+      // Check if registration was successful (status 200/255 or message indicates success)
+      if (response.status === 200 || response.status === 255 || response.message?.toLowerCase().includes("success") || response.message?.toLowerCase().includes("otp")) {
+        // Use the token returned directly from the register response
+        // The register API returns { token, user } in response.data
+        if (response.data?.token) {
+          console.log("[Register] Token received from registration, saving for email verification")
+          setPendingVerification(data.email, response.data.token)
+        } else {
+          console.warn("[Register] No token in registration response, email verification may fail")
+          // Fallback: try to login (unlikely to work if user is not active yet)
+          try {
+            const loginResponse = await apiLogin(data.email, data.password)
+            if (loginResponse.data) {
+              const { token } = loginResponse.data
+              setPendingVerification(data.email, token)
+            }
+          } catch (loginError) {
+            console.log("[Register] Post-registration login failed (expected if user not active):", loginError)
           }
-        } catch (loginError) {
-          // Login might fail if email not verified yet, that's expected
-          console.log("Post-registration login:", loginError)
         }
         
         // Always return needsVerification for new registrations
@@ -277,18 +288,55 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const response = await apiVerifyEmailOtp(otp)
       
       if (response.status === 200) {
-        // Email verified, now fetch updated user data
-        try {
-          const userResponse = await getCurrentUser()
-          if (userResponse.data) {
-            setUser(userResponse.data)
-            saveUserData(userResponse.data)
-          }
-        } catch {
-          // Continue even if fetching user fails
+        let loggedIn = false
+
+        // The verify response may return { token, user } for auto-login
+        if (response.data?.token && response.data?.user) {
+          console.log("[VerifyEmail] Response contains token + user, auto-logging in")
+          saveAuthToken(response.data.token)
+          saveUserData(response.data.user)
+          setUser(response.data.user)
+          loggedIn = true
         }
+
+        // If no token in verify response, try fetching user with the existing token
+        if (!loggedIn) {
+          try {
+            const userResponse = await getCurrentUser()
+            if (userResponse.status === 200 && userResponse.data) {
+              console.log("[VerifyEmail] Fetched user after verification, auto-logging in")
+              saveUserData(userResponse.data)
+              setUser(userResponse.data)
+              loggedIn = true
+            }
+          } catch (e) {
+            console.log("[VerifyEmail] getCurrentUser failed after verification:", e)
+          }
+        }
+
+        // If we still haven't logged in, try login with pending email
+        if (!loggedIn && pendingVerificationEmail) {
+          console.log("[VerifyEmail] Attempting login after verification")
+          try {
+            const loginResponse = await apiLogin(pendingVerificationEmail, "")
+            if (loginResponse.data?.token && loginResponse.data?.user) {
+              saveAuthToken(loginResponse.data.token)
+              saveUserData(loginResponse.data.user)
+              setUser(loginResponse.data.user)
+              loggedIn = true
+            }
+          } catch {
+            // Login without password won't work, that's expected
+          }
+        }
+
         clearPendingVerification()
-        return { success: true, message: "Email verified successfully!" }
+        return { 
+          success: true, 
+          message: loggedIn 
+            ? "Email verified successfully! You are now logged in." 
+            : "Email verified successfully! Please log in to continue." 
+        }
       }
       
       return { success: false, message: response.message || "Verification failed. Please try again." }
@@ -300,7 +348,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false)
     }
-  }, [clearPendingVerification])
+  }, [clearPendingVerification, pendingVerificationEmail])
 
   const resendVerificationOtp = useCallback(async (): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true)

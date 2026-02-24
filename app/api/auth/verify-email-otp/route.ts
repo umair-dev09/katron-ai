@@ -29,6 +29,10 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json()
 
+    console.log("[Verify Email OTP API] Response status:", response.status)
+    console.log("[Verify Email OTP API] Response data:", JSON.stringify(data, null, 2))
+    console.log("[Verify Email OTP API] Auth header present:", !!authHeader)
+
     return NextResponse.json(data, { status: response.status })
   } catch (error) {
     console.error("Verify Email OTP API error:", error)
