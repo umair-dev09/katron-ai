@@ -1,5 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
+import Script from "next/script"
 import { Geist, Geist_Mono } from "next/font/google"
 import { Toaster } from "sonner"
 import ConditionalHeader from "@/components/conditional-header"
@@ -36,6 +37,12 @@ export default function RootLayout({
             <Toaster position="top-center" richColors />
           </GoogleOAuthProvider>
         </AuthProvider>
+        <Script
+          src="https://www.mindlet.io/embed/mindlet-widget.js"
+          data-chatbot-id="072aee94-eaf3-4290-8b95-df175e3c9c7c"
+          data-widget-type="bubble"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   )
