@@ -46,6 +46,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 
+const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
+
 interface UserAccount {
   id: number
   firstname: string
@@ -128,8 +130,9 @@ function UsersPageContent() {
     setIsLoading(true)
     try {
       const token = getAdminToken()
-      const response = await fetch("/api/admin/users", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/getAllUsers?accountType=USER`, {
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       })
@@ -165,8 +168,8 @@ function UsersPageContent() {
     
     try {
       const token = getAdminToken()
-      const response = await fetch(`/api/admin/users/orders?userId=${user.id}`, {
-        headers: { Authorization: `Bearer ${token}` },
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/giftCard/listAllOrdersOfUserAndMerchant?userId=${user.id}`, {
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       })
       const data = await response.json()
       
@@ -198,16 +201,18 @@ function UsersPageContent() {
       const token = getAdminToken()
       const orderId = selectedOrder.giftCardOrderId || selectedOrder.id
       
-      const response = await fetch("/api/admin/orders/action", {
+      const actionEndpoints: Record<string, string> = {
+          refund: "refundOrderPayment",
+          void: "voidOrderPayment",
+          refresh: "refreshOrder",
+        }
+      const endpointName = actionEndpoints[orderAction]
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/giftCard/${endpointName}?giftCardOrderId=${orderId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          giftCardOrderId: orderId,
-          action: orderAction,
-        }),
       })
       const data = await response.json()
       

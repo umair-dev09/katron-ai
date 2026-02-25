@@ -446,26 +446,45 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const fileName = `profile_${user?.id || 'user'}_${timestamp}.${extension}`
       const folderName = "profile-photos"
       
-      const response = await apiUploadFile(file, folderName, fileName)
-      
-      if (response.status === 200 && response.data) {
-        // The API returns the filename - construct the full URL to access the file
-        // Files are accessed via our proxy endpoint to avoid CORS/auth issues
-        const returnedFileName = typeof response.data === 'string' ? response.data : (response.data as unknown as { url?: string; fileName?: string }).fileName || (response.data as unknown as { url?: string }).url
-        
-        // Use the filename returned by the API, or fall back to our generated filename
-        const actualFileName = returnedFileName || fileName
-        
-        // Construct the URL using our local proxy
-        const uploadedUrl = `/api/user/get-file?folderName=${encodeURIComponent(folderName)}&fileName=${encodeURIComponent(actualFileName)}`
-        
-        console.log("[Auth Context] Upload response data:", response.data)
-        console.log("[Auth Context] Constructed photo URL:", uploadedUrl)
-        
-        return { success: true, message: "Photo uploaded successfully!", url: uploadedUrl }
+      const EXTERNAL_API = "https://api.ktngiftcard.katronai.com/katron-gift-card"
+      const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
+
+      // Step 1: Get presigned URL from storage API
+      const presignedResponse = await fetch(
+        `${EXTERNAL_API}/api/storage/uploadGenericFile?folderName=${encodeURIComponent(folderName)}&fileName=${encodeURIComponent(fileName)}`,
+        {
+          method: "POST",
+          headers: {
+            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+          },
+        }
+      )
+      const presignedData = await presignedResponse.json()
+
+      if (presignedData.status !== 200 || !presignedData.data) {
+        return { success: false, message: presignedData.message || "Failed to get upload URL" }
       }
+
+      const presignedUrl = presignedData.data
+      const baseS3Url = presignedUrl.split("?")[0]
+
+      // Step 2: Upload file directly to S3
+      const fileBuffer = await file.arrayBuffer()
+      const uploadResponse = await fetch(presignedUrl, {
+        method: "PUT",
+        headers: {
+          "Content-Type": file.type || "application/octet-stream",
+        },
+        body: fileBuffer,
+      })
+
+      if (!uploadResponse.ok) {
+        return { success: false, message: "Failed to upload photo to storage" }
+      }
+
+      console.log("[Auth Context] Photo uploaded to S3:", baseS3Url)
       
-      return { success: false, message: response.message || "Failed to upload photo. Please try again." }
+      return { success: true, message: "Photo uploaded successfully!", url: baseS3Url }
     } catch (error) {
       const message = error instanceof AuthApiError 
         ? error.message 

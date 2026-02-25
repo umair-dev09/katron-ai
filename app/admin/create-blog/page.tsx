@@ -61,6 +61,8 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
+const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
+
 interface BlogAuthor {
   id: number
   name: string
@@ -171,8 +173,9 @@ function CreateBlogContent() {
     setIsLoadingAuthors(true)
     try {
       const token = localStorage.getItem("admin_auth_token")
-      const response = await fetch("/api/admin/blog-author", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/blogs/listAuthors`, {
         headers: {
+          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
       })
@@ -191,8 +194,9 @@ function CreateBlogContent() {
     setIsLoadingCategories(true)
     try {
       const token = localStorage.getItem("admin_auth_token")
-      const response = await fetch("/api/admin/blog-category", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/blogs/listCategories`, {
         headers: {
+          "Content-Type": "application/json",
           "Authorization": `Bearer ${token}`,
         },
       })
@@ -250,28 +254,44 @@ function CreateBlogContent() {
     try {
       const token = localStorage.getItem("admin_auth_token")
       const uniqueFileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
-      
-      const formDataObj = new FormData()
-      formDataObj.append("file", file)
-      formDataObj.append("folderName", "FOLDER_TYPE_BLOG_ASSETS")
-      formDataObj.append("fileName", uniqueFileName)
 
-      const response = await fetch("/api/admin/upload", {
-        method: "POST",
+      // Step 1: Get presigned URL from API
+      const presignedResponse = await fetch(
+        `${EXTERNAL_API_BASE_URL}/api/storage/uploadGenericFile?folderName=${encodeURIComponent("FOLDER_TYPE_BLOG_ASSETS")}&fileName=${encodeURIComponent(uniqueFileName)}`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      )
+      const presignedData = await presignedResponse.json()
+
+      if (presignedData.status !== 200 || !presignedData.data) {
+        toast.error(presignedData.message || "Failed to get upload URL")
+        return
+      }
+
+      const presignedUrl = presignedData.data
+      const baseS3Url = presignedUrl.split("?")[0]
+
+      // Step 2: Upload file directly to S3
+      const fileBuffer = await file.arrayBuffer()
+      const uploadResponse = await fetch(presignedUrl, {
+        method: "PUT",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          "Content-Type": file.type || "application/octet-stream",
         },
-        body: formDataObj,
+        body: fileBuffer,
       })
 
-      const data = await response.json()
-      
-      if (data.status === 200 && data.data) {
-        setFormData(prev => ({ ...prev, blogImage: data.data }))
-        toast.success("Image uploaded successfully")
-      } else {
-        toast.error(data.message || "Failed to upload image")
+      if (!uploadResponse.ok) {
+        toast.error("Failed to upload file to storage")
+        return
       }
+
+      setFormData(prev => ({ ...prev, blogImage: baseS3Url }))
+      toast.success("Image uploaded successfully")
     } catch (error) {
       console.error("Upload error:", error)
       toast.error("Failed to upload image")
@@ -304,28 +324,44 @@ function CreateBlogContent() {
     try {
       const token = localStorage.getItem("admin_auth_token")
       const uniqueFileName = `avatar-${Date.now()}-${file.name.replace(/\s+/g, "-")}`
-      
-      const formDataObj = new FormData()
-      formDataObj.append("file", file)
-      formDataObj.append("folderName", "FOLDER_TYPE_BLOG_AUTHOR_AVATAR")
-      formDataObj.append("fileName", uniqueFileName)
 
-      const response = await fetch("/api/admin/upload", {
-        method: "POST",
+      // Step 1: Get presigned URL from API
+      const presignedResponse = await fetch(
+        `${EXTERNAL_API_BASE_URL}/api/storage/uploadGenericFile?folderName=${encodeURIComponent("FOLDER_TYPE_BLOG_AUTHOR_AVATAR")}&fileName=${encodeURIComponent(uniqueFileName)}`,
+        {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${token}`,
+          },
+        }
+      )
+      const presignedData = await presignedResponse.json()
+
+      if (presignedData.status !== 200 || !presignedData.data) {
+        toast.error(presignedData.message || "Failed to get upload URL")
+        return
+      }
+
+      const presignedUrl = presignedData.data
+      const baseS3Url = presignedUrl.split("?")[0]
+
+      // Step 2: Upload file directly to S3
+      const fileBuffer = await file.arrayBuffer()
+      const uploadResponse = await fetch(presignedUrl, {
+        method: "PUT",
         headers: {
-          "Authorization": `Bearer ${token}`,
+          "Content-Type": file.type || "application/octet-stream",
         },
-        body: formDataObj,
+        body: fileBuffer,
       })
 
-      const data = await response.json()
-      
-      if (data.status === 200 && data.data) {
-        setNewAuthor(prev => ({ ...prev, avatar: data.data }))
-        toast.success("Avatar uploaded successfully")
-      } else {
-        toast.error(data.message || "Failed to upload avatar")
+      if (!uploadResponse.ok) {
+        toast.error("Failed to upload avatar to storage")
+        return
       }
+
+      setNewAuthor(prev => ({ ...prev, avatar: baseS3Url }))
+      toast.success("Avatar uploaded successfully")
     } catch (error) {
       console.error("Avatar upload error:", error)
       toast.error("Failed to upload avatar")
@@ -347,7 +383,7 @@ function CreateBlogContent() {
     setIsCreatingAuthor(true)
     try {
       const token = localStorage.getItem("admin_auth_token")
-      const response = await fetch("/api/admin/blog-author", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/blogs/createBlogAuthor`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -356,7 +392,7 @@ function CreateBlogContent() {
         body: JSON.stringify({
           name: newAuthor.name,
           bio: newAuthor.bio || undefined,
-          avatar: newAuthor.avatar || undefined, // API uses 'avatar' not 'avatarUrl'
+          avatar: newAuthor.avatar || undefined,
         }),
       })
 
@@ -455,7 +491,7 @@ function CreateBlogContent() {
 
       console.log("Publishing blog:", blogData)
 
-      const response = await fetch("/api/admin/blog", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/blogs/createBlog`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

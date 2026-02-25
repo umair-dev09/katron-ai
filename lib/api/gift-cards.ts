@@ -1,12 +1,4 @@
-import { ApiResponse } from "./auth"
-
-// Base URL for API calls - use proxy in browser, direct in server
-function getBaseUrl(): string {
-  if (typeof window === "undefined") {
-    return "" // Server-side: use relative URL
-  }
-  return "" // Client-side: use relative URL (proxy)
-}
+import { ApiResponse, EXTERNAL_API_BASE_URL } from "./auth"
 
 // Gift Card Types - API expects 'open' for Open Loop (Visa/MC) and 'close' for Closed Loop (brand-specific)
 export type GiftCardType = "open" | "close"
@@ -136,7 +128,10 @@ function getAuthHeaders(): HeadersInit {
  * - Some users may see both based on permissions
  */
 export async function listGiftCards(type: GiftCardType): Promise<ApiResponse<GiftCard[]>> {
-  const response = await fetch(`${getBaseUrl()}/api/gift-cards?type=${type}`, {
+  // Map frontend type values to backend enum: 'open' → 'OPEN', 'close' → 'CLOSE'
+  const backendType = type === "open" ? "OPEN" : "CLOSE"
+  
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/listAllGiftCards?type=${backendType}`, {
     method: "GET",
     headers: getAuthHeaders(),
   })

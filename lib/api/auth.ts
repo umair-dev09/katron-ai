@@ -1,18 +1,8 @@
 // Auth API Service for Katron AI Gift Card Platform
-// Uses Next.js API routes as proxy to avoid CORS issues
+// Calls external backend API directly
 
-// External API base URL (used only in server-side proxy routes)
+// External API base URL
 export const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
-
-// Helper function to get the base URL for API calls
-function getBaseUrl(): string {
-  if (typeof window !== "undefined") {
-    // Client-side: use relative URL
-    return ""
-  }
-  // Server-side: use absolute URL
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-}
 
 // Types based on OpenAPI spec
 export interface RegisterAddressModel {
@@ -123,10 +113,9 @@ function getAuthHeaders(): HeadersInit {
 
 /**
  * Register a new user
- * POST /api/auth/register (proxied)
  */
 export async function register(data: RegisterModel): Promise<ApiResponse<LoginResponse>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/register`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/register`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -139,7 +128,6 @@ export async function register(data: RegisterModel): Promise<ApiResponse<LoginRe
 
 /**
  * Login user
- * POST /api/auth/login (proxied)
  */
 export async function login(email: string, password: string): Promise<ApiResponse<LoginResponse>> {
   const params = new URLSearchParams({
@@ -147,7 +135,7 @@ export async function login(email: string, password: string): Promise<ApiRespons
     password,
   });
   
-  const response = await fetch(`${getBaseUrl()}/api/auth/login?${params.toString()}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/login?${params.toString()}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -167,7 +155,7 @@ export async function googleLogin(
   idToken: string,
   accountType: "MERCHANT" | "USER" | "ADMIN" | "SUPER_ADMIN"
 ): Promise<ApiResponse<LoginResponse>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/google`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/google`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -183,12 +171,11 @@ export async function googleLogin(
 
 /**
  * Verify email OTP
- * POST /api/auth/verify-email-otp (proxied)
  */
 export async function verifyEmailOtp(otp: string): Promise<ApiResponse<LoginResponse>> {
   const params = new URLSearchParams({ otp });
   
-  const response = await fetch(`${getBaseUrl()}/api/auth/verify-email-otp?${params.toString()}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/verifyEmailOtp?${params.toString()}`, {
     method: "POST",
     headers: getAuthHeaders(),
   });
@@ -198,10 +185,9 @@ export async function verifyEmailOtp(otp: string): Promise<ApiResponse<LoginResp
 
 /**
  * Resend email verification OTP
- * POST /api/auth/resend-email-otp (proxied)
  */
 export async function resendEmailVerificationOtp(): Promise<ApiResponse<null>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/resend-email-otp`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/resendOtpForEmailVerification`, {
     method: "POST",
     headers: getAuthHeaders(),
   });
@@ -263,12 +249,13 @@ export interface ForgotPasswordResponse {
 }
 
 export async function forgotPassword(email: string): Promise<ApiResponse<ForgotPasswordResponse>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/forgot-password`, {
+  const params = new URLSearchParams({ email });
+  
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/forgotPassword?${params.toString()}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ email }),
   });
   
   return handleResponse<ForgotPasswordResponse>(response);
@@ -280,7 +267,7 @@ export async function forgotPassword(email: string): Promise<ApiResponse<ForgotP
  * Requires the temporary token from forgotPassword
  */
 export async function resendResetPasswordOtp(tempToken: string): Promise<ApiResponse<null>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/resend-reset-otp`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/resendOtpForResetPassword`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -302,13 +289,14 @@ export async function resetPassword(
   confirmPassword: string,
   tempToken: string
 ): Promise<ApiResponse<null>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/reset-password`, {
+  const params = new URLSearchParams({ otp, newPassword, confirmPassword });
+  
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/resetPassword?${params.toString()}`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "Authorization": `Bearer ${tempToken}`,
     },
-    body: JSON.stringify({ otp, newPassword, confirmPassword }),
   });
   
   return handleResponse<null>(response);
@@ -316,10 +304,9 @@ export async function resetPassword(
 
 /**
  * Get current user
- * GET /api/user (proxied)
  */
 export async function getCurrentUser(): Promise<ApiResponse<UserData>> {
-  const response = await fetch(`${getBaseUrl()}/api/user`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/getUser`, {
     method: "GET",
     headers: getAuthHeaders(),
   });

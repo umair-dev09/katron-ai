@@ -84,13 +84,6 @@ export interface PaymentStatus {
 
 // ==================== Helpers ====================
 
-function getBaseUrl(): string {
-  if (typeof window !== "undefined") {
-    return ""
-  }
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-}
-
 function getAuthHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
   const headers: HeadersInit = {
@@ -136,10 +129,9 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
 
 /**
  * Add a new card to PayArc for the merchant
- * POST /api/checkout/add-card (proxied)
  */
 export async function addCardToPayArc(cardData: CardCreateRequestModel): Promise<ApiResponse<SavedCard>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/add-card`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/addCardToPayArc`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(cardData),
@@ -150,10 +142,9 @@ export async function addCardToPayArc(cardData: CardCreateRequestModel): Promise
 
 /**
  * Get all saved cards for the current user
- * GET /api/checkout/cards (proxied)
  */
 export async function getSavedCards(): Promise<ApiResponse<SavedCard[]>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/cards`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/getCards`, {
     method: "GET",
     headers: getAuthHeaders(),
   })
@@ -163,12 +154,12 @@ export async function getSavedCards(): Promise<ApiResponse<SavedCard[]>> {
 
 /**
  * Delete a saved card
- * DELETE /api/checkout/cards/:cardId (proxied)
  */
 export async function deleteCard(cardId: string): Promise<ApiResponse<null>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/cards/${cardId}`, {
-    method: "DELETE",
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/deleteCard`, {
+    method: "POST",
     headers: getAuthHeaders(),
+    body: JSON.stringify({ cardId: parseInt(cardId) }),
   })
   
   return handleResponse<null>(response)
@@ -178,12 +169,11 @@ export async function deleteCard(cardId: string): Promise<ApiResponse<null>> {
 
 /**
  * Purchase a gift card as a MERCHANT (direct card charge)
- * POST /api/checkout/purchase-merchant (proxied)
  */
 export async function purchaseGiftCardMerchant(
   orderData: GiftcardOrderRequestMerchant
 ): Promise<ApiResponse<GiftCardOrder>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/purchase-merchant`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/purchaseGiftCardByMerchant`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(orderData),
@@ -209,12 +199,11 @@ export interface CreateOrderResponse {
 
 /**
  * Create a gift card order for regular USER (redirects to payment page)
- * POST /api/checkout/create-order (proxied)
  */
 export async function createGiftCardOrder(
   orderData: GiftcardOrderRequest
 ): Promise<ApiResponse<CreateOrderResponse>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/create-order`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/createGiftCardOrder`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(orderData),
@@ -225,10 +214,9 @@ export async function createGiftCardOrder(
 
 /**
  * Check payment status for an order
- * POST /api/checkout/check-payment-status (proxied)
  */
 export async function checkPaymentStatus(orderId: string): Promise<ApiResponse<PaymentStatus>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/check-payment-status`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkPaymentStatus`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify({ orderId }),
@@ -239,13 +227,11 @@ export async function checkPaymentStatus(orderId: string): Promise<ApiResponse<P
 
 /**
  * Check for both payment and gift card delivery status
- * POST /api/checkout/check-order-status (proxied)
  */
 export async function checkOrderStatus(orderId: string): Promise<ApiResponse<GiftCardOrder>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/check-order-status`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkForPaymentAndGiftCardStatus?giftCardOrderId=${orderId}`, {
     method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify({ orderId }),
   })
   
   return handleResponse<GiftCardOrder>(response)
@@ -255,10 +241,9 @@ export async function checkOrderStatus(orderId: string): Promise<ApiResponse<Gif
 
 /**
  * Get all orders for the current user
- * GET /api/checkout/orders (proxied)
  */
 export async function getUserOrders(): Promise<ApiResponse<GiftCardOrder[]>> {
-  const response = await fetch(`${getBaseUrl()}/api/checkout/orders`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/listAllOrders`, {
     method: "GET",
     headers: getAuthHeaders(),
   })

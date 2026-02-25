@@ -1,7 +1,6 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import { Toaster } from "sonner"
 import ConditionalHeader from "@/components/conditional-header"
 import ConditionalFooter from "@/components/conditional-footer"
@@ -35,7 +34,6 @@ export default function RootLayout({
             {children}
             <ConditionalFooter />
             <Toaster position="top-center" richColors />
-            <Analytics />
           </GoogleOAuthProvider>
         </AuthProvider>
       </body>

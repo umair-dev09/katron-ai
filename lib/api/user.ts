@@ -1,5 +1,5 @@
 // User API Service for Katron AI Gift Card Platform
-// Uses Next.js API routes as proxy to avoid CORS issues
+// Calls external backend API directly
 
 import { EXTERNAL_API_BASE_URL, type ApiResponse, type UserData, AuthApiError } from "./auth"
 
@@ -16,16 +16,6 @@ export interface ChangePasswordModel {
   oldPassword: string
   newPassword: string
   confirmPassword: string
-}
-
-// Helper function to get the base URL for API calls
-function getBaseUrl(): string {
-  if (typeof window !== "undefined") {
-    // Client-side: use relative URL
-    return ""
-  }
-  // Server-side: use absolute URL
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
 }
 
 // Helper function to get auth headers
@@ -78,10 +68,9 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
 
 /**
  * Update user information
- * POST /api/user/update-info (proxied)
  */
 export async function updateUserInformation(data: UpdateUserModel): Promise<ApiResponse<UserData>> {
-  const response = await fetch(`${getBaseUrl()}/api/user/update-info`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/updateUserInformation`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify(data),
@@ -92,13 +81,13 @@ export async function updateUserInformation(data: UpdateUserModel): Promise<ApiR
 
 /**
  * Update user profile photo
- * POST /api/user/update-photo (proxied)
  */
 export async function updateUserPhoto(photoUrl: string): Promise<ApiResponse<UserData>> {
-  const response = await fetch(`${getBaseUrl()}/api/user/update-photo`, {
+  const params = new URLSearchParams({ photo: photoUrl })
+  
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/updateUserPhoto?${params.toString()}`, {
     method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify({ photo: photoUrl }),
   })
   
   return handleResponse<UserData>(response)
@@ -106,7 +95,6 @@ export async function updateUserPhoto(photoUrl: string): Promise<ApiResponse<Use
 
 /**
  * Upload a file
- * POST /api/user/upload-file (proxied)
  */
 export async function uploadFile(file: File, folderName: string, fileName: string): Promise<ApiResponse<string>> {
   const formData = new FormData()
@@ -117,7 +105,7 @@ export async function uploadFile(file: File, folderName: string, fileName: strin
     fileName,
   })
   
-  const response = await fetch(`${getBaseUrl()}/api/user/upload-file?${params.toString()}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/uploadGenericFile?${params.toString()}`, {
     method: "POST",
     headers: getAuthHeadersForUpload(),
     body: formData,
@@ -128,13 +116,17 @@ export async function uploadFile(file: File, folderName: string, fileName: strin
 
 /**
  * Change user password
- * POST /api/user/change-password (proxied)
  */
 export async function changePassword(data: ChangePasswordModel): Promise<ApiResponse<null>> {
-  const response = await fetch(`${getBaseUrl()}/api/user/change-password`, {
+  const params = new URLSearchParams({
+    oldPassword: data.oldPassword,
+    newPassword: data.newPassword,
+    confirmPassword: data.confirmPassword,
+  })
+  
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/changePassword?${params.toString()}`, {
     method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify(data),
   })
   
   return handleResponse<null>(response)
@@ -142,10 +134,9 @@ export async function changePassword(data: ChangePasswordModel): Promise<ApiResp
 
 /**
  * Send OTP for phone verification
- * POST /api/auth/send-phone-otp (proxied)
  */
 export async function sendPhoneVerificationOtp(): Promise<ApiResponse<null>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/send-phone-otp`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/sendOtpForPhoneVerification`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -155,13 +146,13 @@ export async function sendPhoneVerificationOtp(): Promise<ApiResponse<null>> {
 
 /**
  * Verify phone OTP
- * POST /api/auth/verify-phone-otp (proxied)
  */
 export async function verifyPhoneOtp(otp: string): Promise<ApiResponse<UserData>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/verify-phone-otp`, {
+  const params = new URLSearchParams({ otp })
+  
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/verifyPhoneOtp?${params.toString()}`, {
     method: "POST",
     headers: getAuthHeaders(),
-    body: JSON.stringify({ otp }),
   })
   
   return handleResponse<UserData>(response)
@@ -169,10 +160,9 @@ export async function verifyPhoneOtp(otp: string): Promise<ApiResponse<UserData>
 
 /**
  * Resend phone verification OTP
- * POST /api/auth/resend-phone-otp (proxied)
  */
 export async function resendPhoneVerificationOtp(): Promise<ApiResponse<null>> {
-  const response = await fetch(`${getBaseUrl()}/api/auth/resend-phone-otp`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/resendOtpForPhoneVerification`, {
     method: "POST",
     headers: getAuthHeaders(),
   })

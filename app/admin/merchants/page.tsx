@@ -49,6 +49,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 
+const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
+
 interface Merchant {
   id: number
   firstname: string
@@ -135,8 +137,9 @@ function MerchantsPageContent() {
     setIsLoading(true)
     try {
       const token = getAdminToken()
-      const response = await fetch("/api/admin/merchants", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/getAllUsers?accountType=MERCHANT`, {
         headers: {
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       })
@@ -168,13 +171,12 @@ function MerchantsPageContent() {
     setIsToggling(merchant.id)
     try {
       const token = getAdminToken()
-      const response = await fetch("/api/admin/merchants/toggle-status", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/external/giftCard/activateOrDeactivateMerchantApiProfile?email=${encodeURIComponent(merchant.email)}&activate=${activate}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ email: merchant.email, activate }),
       })
       const data = await response.json()
       
@@ -209,16 +211,12 @@ function MerchantsPageContent() {
     setIsLoadingBalance(true)
     try {
       const token = getAdminToken()
-      const response = await fetch("/api/admin/merchants/load-balance", {
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/external/giftCard/loadBalance?email=${encodeURIComponent(selectedMerchant.email)}&balance=${parseFloat(balanceAmount)}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          email: selectedMerchant.email,
-          balance: parseFloat(balanceAmount),
-        }),
       })
       const data = await response.json()
       
@@ -259,11 +257,11 @@ function MerchantsPageContent() {
       const token = getAdminToken()
       // Try both endpoints - by user ID and by merchant email
       const [ordersById, ordersByEmail] = await Promise.all([
-        fetch(`/api/admin/merchants/orders?userId=${merchant.id}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        fetch(`${EXTERNAL_API_BASE_URL}/api/admin/giftCard/listAllOrdersOfUserAndMerchant?userId=${merchant.id}`, {
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         }).then(r => r.json()).catch(() => null),
-        fetch(`/api/admin/merchants/orders?merchantEmail=${encodeURIComponent(merchant.email)}`, {
-          headers: { Authorization: `Bearer ${token}` },
+        fetch(`${EXTERNAL_API_BASE_URL}/api/admin/giftCard/listAllOrdersOfMerchantProfileApi?merchantEmail=${encodeURIComponent(merchant.email)}`, {
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         }).then(r => r.json()).catch(() => null),
       ])
       
@@ -304,16 +302,18 @@ function MerchantsPageContent() {
       const token = getAdminToken()
       const orderId = selectedOrder.giftCardOrderId || selectedOrder.id
       
-      const response = await fetch("/api/admin/orders/action", {
+      const actionEndpoints: Record<string, string> = {
+          refund: "refundOrderPayment",
+          void: "voidOrderPayment",
+          refresh: "refreshOrder",
+        }
+      const endpointName = actionEndpoints[orderAction]
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/giftCard/${endpointName}?giftCardOrderId=${orderId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          giftCardOrderId: orderId,
-          action: orderAction,
-        }),
       })
       const data = await response.json()
       

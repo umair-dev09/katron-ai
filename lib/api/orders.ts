@@ -134,13 +134,6 @@ export interface ResendCredentialsResponse {
 
 // ==================== Helpers ====================
 
-function getBaseUrl(): string {
-  if (typeof window !== "undefined") {
-    return ""
-  }
-  return process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
-}
-
 function getAuthHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
   const headers: HeadersInit = {
@@ -179,10 +172,9 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
 
 /**
  * Get all orders for the current user
- * GET /api/orders (proxied to /api/giftCards/listAllOrders)
  */
 export async function getOrders(): Promise<ApiResponse<GiftCardOrder[]>> {
-  const response = await fetch(`${getBaseUrl()}/api/orders`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/listAllOrders`, {
     method: "GET",
     headers: getAuthHeaders(),
   })
@@ -192,11 +184,10 @@ export async function getOrders(): Promise<ApiResponse<GiftCardOrder[]>> {
 
 /**
  * Get a single order by ID
- * GET /api/orders/:orderId
  */
 export async function getOrderById(orderId: number | string): Promise<ApiResponse<GiftCardOrder>> {
-  const response = await fetch(`${getBaseUrl()}/api/orders/${orderId}`, {
-    method: "GET",
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkForPaymentAndGiftCardStatus?giftCardOrderId=${orderId}`, {
+    method: "POST",
     headers: getAuthHeaders(),
   })
   
@@ -205,10 +196,9 @@ export async function getOrderById(orderId: number | string): Promise<ApiRespons
 
 /**
  * Check order status and update
- * POST /api/orders/check-status
  */
 export async function checkOrderStatus(orderId: number | string): Promise<ApiResponse<GiftCardOrder>> {
-  const response = await fetch(`${getBaseUrl()}/api/orders/check-status?giftCardOrderId=${orderId}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkForPaymentAndGiftCardStatus?giftCardOrderId=${orderId}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -218,10 +208,9 @@ export async function checkOrderStatus(orderId: number | string): Promise<ApiRes
 
 /**
  * Resend gift card credentials to recipient email
- * POST /api/orders/resend-credentials
  */
 export async function resendGiftCardCredentials(orderId: number | string): Promise<ApiResponse<ResendCredentialsResponse>> {
-  const response = await fetch(`${getBaseUrl()}/api/orders/resend-credentials?giftCardOrderId=${orderId}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/external/giftCard/resendGiftCardCredentials?giftCardOrderId=${orderId}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })

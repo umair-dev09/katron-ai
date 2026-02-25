@@ -1,4 +1,4 @@
-import { type ApiResponse, AuthApiError } from "./auth"
+import { type ApiResponse, AuthApiError, EXTERNAL_API_BASE_URL } from "./auth"
 
 // Types for merchant API profile
 export type ChargeType = "CHARGE_CARD" | "CHARGE_ACCOUNT_BALANCE"
@@ -60,7 +60,7 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
  * Get merchant account details (profile, balance, API key, etc.)
  */
 export async function getMerchantAccountDetails(): Promise<ApiResponse<MerchantApiProfile>> {
-  const response = await fetch("/api/merchant/profile", {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/merchant/getAccountDetails`, {
     method: "GET",
     headers: getAuthHeaders(),
   })
@@ -72,7 +72,7 @@ export async function getMerchantAccountDetails(): Promise<ApiResponse<MerchantA
  * @param type - CHARGE_CARD or CHARGE_ACCOUNT_BALANCE
  */
 export async function createMerchantApiProfile(type: ChargeType): Promise<ApiResponse<MerchantApiProfile>> {
-  const response = await fetch(`/api/merchant/profile?type=${type}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/createMerchantApiProfile?type=${type}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -83,7 +83,7 @@ export async function createMerchantApiProfile(type: ChargeType): Promise<ApiRes
  * Reissue (regenerate) the merchant API token/key
  */
 export async function reissueApiToken(): Promise<ApiResponse<MerchantApiProfile>> {
-  const response = await fetch("/api/merchant/reissue-token", {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/merchant/reissueTokenForMerchantApiProfile`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -95,7 +95,7 @@ export async function reissueApiToken(): Promise<ApiResponse<MerchantApiProfile>
  * @param type - CHARGE_CARD or CHARGE_ACCOUNT_BALANCE
  */
 export async function updateChargeType(type: ChargeType): Promise<ApiResponse<MerchantApiProfile>> {
-  const response = await fetch(`/api/merchant/update-charge-type?type=${type}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/merchant/giftCard/updateMerchantApiProfileGiftCardChargeType?type=${type}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -106,7 +106,7 @@ export async function updateChargeType(type: ChargeType): Promise<ApiResponse<Me
  * Get active fee preference for merchant
  */
 export async function getMerchantFeePreference(): Promise<ApiResponse<FeePreference>> {
-  const response = await fetch("/api/merchant/fee-preference", {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/merchant/giftCard/getActiveFeePreference`, {
     method: "GET",
     headers: getAuthHeaders(),
   })

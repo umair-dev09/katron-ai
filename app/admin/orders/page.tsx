@@ -46,6 +46,8 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { toast } from "@/hooks/use-toast"
 
+const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
+
 interface Order {
   id: number
   giftCardOrderId?: number
@@ -111,13 +113,13 @@ function OrdersPageContent() {
       let url: string
       
       if (searchType === "user") {
-        url = `/api/admin/users/orders?userId=${userId.trim()}`
+        url = `${EXTERNAL_API_BASE_URL}/api/admin/giftCard/listAllOrdersOfUserAndMerchant?userId=${userId.trim()}`
       } else {
-        url = `/api/admin/merchants/orders?merchantEmail=${encodeURIComponent(merchantEmail.trim())}`
+        url = `${EXTERNAL_API_BASE_URL}/api/admin/giftCard/listAllOrdersOfMerchantProfileApi?merchantEmail=${encodeURIComponent(merchantEmail.trim())}`
       }
       
       const response = await fetch(url, {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       })
       const data = await response.json()
       
@@ -156,16 +158,18 @@ function OrdersPageContent() {
       const token = getAdminToken()
       const orderId = selectedOrder.giftCardOrderId || selectedOrder.id
       
-      const response = await fetch("/api/admin/orders/action", {
+      const actionEndpoints: Record<string, string> = {
+          refund: "refundOrderPayment",
+          void: "voidOrderPayment",
+          refresh: "refreshOrder",
+        }
+      const endpointName = actionEndpoints[orderAction]
+      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/admin/giftCard/${endpointName}?giftCardOrderId=${orderId}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          giftCardOrderId: orderId,
-          action: orderAction,
-        }),
       })
       const data = await response.json()
       

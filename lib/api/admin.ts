@@ -1,6 +1,8 @@
 // Admin API Service for Katron AI Gift Card Platform
 // Admin-specific API calls for dashboard statistics
 
+const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
+
 interface ApiResponse<T = unknown> {
   status: number
   message: string
@@ -50,8 +52,7 @@ export interface AdminGiftCard {
 }
 
 /**
- * Fetch dashboard statistics via proxy route
- * This avoids CORS issues by calling our Next.js API route
+ * Fetch dashboard statistics by aggregating multiple API calls directly
  */
 export async function getDashboardStats(): Promise<DashboardStats> {
   try {
@@ -67,29 +68,73 @@ export async function getDashboardStats(): Promise<DashboardStats> {
       }
     }
 
-    const response = await fetch("/api/admin/stats", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-      },
-    })
-
-    const data: ApiResponse<DashboardStats> = await response.json()
-    
-    console.log("[Admin API] Stats response:", data)
-
-    if (data.status === 200 && data.data) {
-      return data.data
+    const headers = {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`,
     }
 
-    console.error("[Admin API] Failed to fetch stats:", data.message)
-    return {
-      totalPublishedBlogs: 0,
-      totalUsers: 0,
-      totalMerchants: 0,
-      totalAuthors: 0,
+    // Fetch users, merchants, published blogs and authors in parallel
+    const [usersRes, merchantsRes, blogsRes, authorsRes] = await Promise.all([
+      fetch(`${EXTERNAL_API_BASE_URL}/api/admin/getAllUsers?accountType=USER`, {
+        method: "GET",
+        headers,
+      }).catch(() => null),
+      fetch(`${EXTERNAL_API_BASE_URL}/api/admin/getAllUsers?accountType=MERCHANT`, {
+        method: "GET",
+        headers,
+      }).catch(() => null),
+      fetch(`${EXTERNAL_API_BASE_URL}/api/blogs/listBlogs?status=PUBLISHED&pageSize=1`, {
+        method: "GET",
+        headers,
+      }).catch(() => null),
+      fetch(`${EXTERNAL_API_BASE_URL}/api/blogs/listAuthors`, {
+        method: "GET",
+        headers,
+      }).catch(() => null),
+    ])
+
+    let totalUsers = 0
+    let totalMerchants = 0
+    let totalPublishedBlogs = 0
+    let totalAuthors = 0
+
+    if (usersRes) {
+      try {
+        const data = await usersRes.json()
+        if (data?.status === 200 && Array.isArray(data?.data)) {
+          totalUsers = data.data.length
+        }
+      } catch {}
     }
+
+    if (merchantsRes) {
+      try {
+        const data = await merchantsRes.json()
+        if (data?.status === 200 && Array.isArray(data?.data)) {
+          totalMerchants = data.data.length
+        }
+      } catch {}
+    }
+
+    if (blogsRes) {
+      try {
+        const data = await blogsRes.json()
+        if (data?.status === 200 && data?.data?.totalElements !== undefined) {
+          totalPublishedBlogs = data.data.totalElements
+        }
+      } catch {}
+    }
+
+    if (authorsRes) {
+      try {
+        const data = await authorsRes.json()
+        if (data?.status === 200 && Array.isArray(data?.data)) {
+          totalAuthors = data.data.length
+        }
+      } catch {}
+    }
+
+    return { totalPublishedBlogs, totalUsers, totalMerchants, totalAuthors }
   } catch (error) {
     console.error("[Admin API] Failed to fetch dashboard stats:", error)
     return {

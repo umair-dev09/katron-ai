@@ -1,17 +1,8 @@
-"use client"
-
-import { use } from "react"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import RewardItemHero from "@/components/rewards/reward-item-hero"
 import RewardItemInfo from "@/components/rewards/reward-item-info"
 import RewardItemFAQ from "@/components/rewards/reward-item-faq"
-
-interface PageProps {
-  params: Promise<{
-    "reward-item": string
-  }>
-}
 
 // Brand data mapping
 const brandData: Record<string, { name: string; image: string }> = {
@@ -39,8 +30,15 @@ const brandData: Record<string, { name: string; image: string }> = {
   "xbox": { name: "Xbox", image: "/rewards-cards/xbox.webp" }
 }
 
-export default function RewardItemPage({ params }: PageProps) {
-  const resolvedParams = use(params)
+// Required for static export with dynamic routes
+export function generateStaticParams() {
+  return Object.keys(brandData).map((slug) => ({
+    "reward-item": slug,
+  }))
+}
+
+export default async function RewardItemPage({ params }: { params: Promise<{ "reward-item": string }> }) {
+  const resolvedParams = await params
   const slug = resolvedParams["reward-item"]
   const brand = brandData[slug]
 
