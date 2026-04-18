@@ -4,6 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { ArrowLeft } from "lucide-react"
 import UserProfileSection from "@/components/settings/user-profile-section"
+import AddressSection from "@/components/settings/address-section"
 import ChangePasswordSection from "@/components/settings/change-password-section"
 import AccountActionsSection from "@/components/settings/account-actions-section"
 import { useAuth } from "@/lib/auth-context"
@@ -38,6 +39,9 @@ export default function SettingsPageContent() {
 
           {/* User Profile Section */}
           <UserProfileSection />
+
+          {/* Address Section */}
+          <AddressSection />
 
           {/* Change Password Section */}
           <ChangePasswordSection />

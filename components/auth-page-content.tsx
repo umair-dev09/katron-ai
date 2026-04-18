@@ -8,7 +8,7 @@ export function AuthPageContent() {
   const mode = searchParams.get("mode") || "initial"
 
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-4 md:p-10">
+    <div className="flex min-h-svh flex-col items-center justify-center bg-muted p-4 md:p-10 pt-24 md:pt-28">
       <div className="w-full max-w-lg md:max-w-4xl flex flex-col">
         <AuthContainer initialMode={mode as "initial" | "login" | "signup"} />
         <p className="text-xs md:text-sm text-muted-foreground text-center mt-6 px-4">

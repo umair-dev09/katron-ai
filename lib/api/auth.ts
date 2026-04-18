@@ -129,10 +129,11 @@ export async function register(data: RegisterModel): Promise<ApiResponse<LoginRe
 /**
  * Login user
  */
-export async function login(email: string, password: string): Promise<ApiResponse<LoginResponse>> {
+export async function login(email: string, password: string, accountType: "MERCHANT" | "USER" | "ADMIN" | "SUPER_ADMIN" = "USER"): Promise<ApiResponse<LoginResponse>> {
   const params = new URLSearchParams({
     email,
     password,
+    accountType,
   });
   
   const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/login?${params.toString()}`, {
@@ -393,9 +394,27 @@ export function removeAuthToken(): void {
   }
 }
 
+/**
+ * Strip an S3 presigned URL back to its raw object key.
+ * Presigned URLs expire (~10 min) and must never be persisted to localStorage.
+ * Only the in-memory user state should carry presigned URLs.
+ */
+function stripPresignedToKey(photo: string | undefined): string | undefined {
+  if (!photo || !photo.startsWith("http")) return photo
+  if (!photo.includes("X-Amz-") && !photo.includes("amazonaws.com")) return photo
+  try {
+    const pathname = decodeURIComponent(new URL(photo).pathname)
+    const idx = pathname.indexOf("FOLDER_TYPE_")
+    if (idx >= 0) return pathname.slice(idx)
+  } catch { /* ignore */ }
+  return photo
+}
+
 export function saveUserData(user: UserData): void {
   if (typeof window !== "undefined") {
-    localStorage.setItem("userData", JSON.stringify(user));
+    // Always persist the raw S3 key — never a presigned URL that will expire
+    const toSave = { ...user, profilePhoto: stripPresignedToKey(user.profilePhoto) }
+    localStorage.setItem("userData", JSON.stringify(toSave));
   }
 }
 

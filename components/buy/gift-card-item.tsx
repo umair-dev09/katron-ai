@@ -116,12 +116,7 @@ export default function GiftCardItem({ card, showTypeBadge = false }: GiftCardIt
           </div>
         )}
         
-        {/* Discount Sticker */}
-        {discount > 0 && (
-          <div className="absolute bottom-3 left-3 bg-teal-500 text-white px-3 py-1 rounded-full text-xs font-bold z-10">
-            {discount}% OFF
-          </div>
-        )}
+        {/* Discount removed per business rules */}
 
         {/* Logo */}
         <div className="relative z-10 transform group-hover:scale-110 transition-transform duration-300 ease-out">

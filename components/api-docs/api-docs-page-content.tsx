@@ -51,9 +51,8 @@ const NAV_SECTIONS: NavSection[] = [
     label: "Quick Start",
     icon: <Zap className="w-4 h-4" />,
     children: [
-      { id: "create-profile", label: "1. Create Profile" },
-      { id: "get-api-key", label: "2. Get API Key" },
-      { id: "first-request", label: "3. First Request" },
+      { id: "get-api-key", label: "1. Get API Key" },
+      { id: "first-request", label: "2. First Request" },
     ],
   },
   {
@@ -63,7 +62,6 @@ const NAV_SECTIONS: NavSection[] = [
     children: [
       { id: "get-account-details", label: "Get Account Details" },
       { id: "update-charge-type", label: "Update Charge Type" },
-      { id: "reissue-token", label: "Reissue API Token" },
       { id: "fee-preference", label: "Fee Preference" },
     ],
   },
@@ -307,7 +305,7 @@ export default function ApiDocsPageContent() {
             </p>
             <div className="flex flex-wrap items-center gap-3">
               <button
-                onClick={() => scrollToSection("create-profile")}
+                onClick={() => scrollToSection("get-api-key")}
                 className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-semibold bg-[#9333EA] text-white hover:bg-purple-500 transition-all shadow-lg shadow-purple-500/25"
               >
                 Quick Start
@@ -491,7 +489,7 @@ Content-Type: application/json`} />
             <div className="my-14 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
             {/* ── QUICK START ──────────────────────────────────────────── */}
-            <section id="create-profile" data-section className="scroll-mt-32">
+            <section id="get-api-key" data-section className="scroll-mt-32">
               <h2 className="text-2xl font-bold text-white mb-2 flex items-center gap-3">
                 <div className="p-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
                   <Zap className="w-5 h-5 text-amber-400" />
@@ -499,78 +497,29 @@ Content-Type: application/json`} />
                 Quick Start Guide
               </h2>
               <p className="text-sm text-white/50 mb-8">
-                Get up and running in three simple steps. From creating your merchant API profile to making your first
-                API request — here&apos;s everything you need to start.
+                Get up and running in two simple steps. Create your merchant API profile from the API Profile page, then start making requests.
               </p>
 
               {/* Step indicator */}
-              <div className="relative pl-6 border-l-2 border-purple-500/20 space-y-8 mb-8">
+              <div className="relative pl-6 border-l-2 border-purple-500/20 mb-4">
                 <div className="relative">
                   <div className="absolute -left-[31px] w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-purple-500/30">1</div>
-                  <h3 className="text-base font-semibold text-white mb-2">Create Your Merchant API Profile</h3>
+                  <h3 className="text-base font-semibold text-white mb-2">Retrieve Your API Key</h3>
                   <p className="text-sm text-white/50 mb-3">
-                    Register as a <strong className="text-white/70">MERCHANT</strong> user on KTN Gift Card, then navigate to
-                    <strong className="text-white/70"> API Profile</strong> or call the endpoint below. Choose a charge type that determines how purchases are billed.
+                    After creating your profile from the <strong className="text-white/70">API Profile</strong> page, your API key (Bearer token) is sent to your registered email address.
+                    This token is used for all subsequent calls to <code className="px-1.5 py-0.5 bg-white/[0.06] rounded-md text-xs font-mono text-white/60">/api/merchant/*</code> endpoints.
                   </p>
                 </div>
               </div>
-
-              <EndpointHeader
-                method="POST"
-                path="/api/user/createMerchantApiProfile?type=CHARGE_CARD"
-                title="Create Merchant API Profile"
-                description="Creates a new API profile for the authenticated merchant user. Requires user JWT (not the merchant API key)."
-              />
-
-              <ParamTable params={[
-                { name: "type", type: "string", required: true, description: "The billing method for API purchases.", extra: "Enum: CHARGE_CARD | CHARGE_ACCOUNT_BALANCE" },
-              ]} />
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-4">
-                <div className="p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:border-purple-500/30 transition-colors">
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <div className="p-1.5 rounded-lg bg-blue-500/10">
-                      <CreditCard className="w-3.5 h-3.5 text-blue-400" />
-                    </div>
-                    <p className="text-sm font-semibold text-white">CHARGE_CARD</p>
-                  </div>
-                  <p className="text-xs text-white/40 leading-relaxed">Purchases are charged directly to your card on file. Best for pay-as-you-go usage.</p>
-                </div>
-                <div className="p-4 rounded-2xl border border-white/[0.08] bg-white/[0.02] hover:border-purple-500/30 transition-colors">
-                  <div className="flex items-center gap-2.5 mb-2">
-                    <div className="p-1.5 rounded-lg bg-emerald-500/10">
-                      <Wallet className="w-3.5 h-3.5 text-emerald-400" />
-                    </div>
-                    <p className="text-sm font-semibold text-white">CHARGE_ACCOUNT_BALANCE</p>
-                  </div>
-                  <p className="text-xs text-white/40 leading-relaxed">Purchases are deducted from pre-loaded account balance. Best for high-volume usage.</p>
-                </div>
-              </div>
-
-              <CodeBlock language="bash" code={`curl -X POST \\
-  "${BASE_URL}/api/user/createMerchantApiProfile?type=CHARGE_CARD" \\
-  -H "Authorization: Bearer YOUR_USER_JWT_TOKEN" \\
-  -H "Content-Type: application/json"`} />
-            </section>
-
-            <section id="get-api-key" data-section className="scroll-mt-32 mt-10">
-              <div className="relative pl-6 border-l-2 border-purple-500/20 mb-4">
-                <div className="absolute -left-[11px] w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-purple-500/30">2</div>
-                <h3 className="text-base font-semibold text-white mb-2">Retrieve Your API Key</h3>
-                <p className="text-sm text-white/50 mb-3">
-                  After creating your profile, your API key (Bearer token) is sent to your registered email address.
-                  This token is used for all subsequent calls to <code className="px-1.5 py-0.5 bg-white/[0.06] rounded-md text-xs font-mono text-white/60">/api/merchant/*</code> endpoints.
-                </p>
-              </div>
               <InfoCallout variant="tip">
-                <strong>Tip:</strong> Check your spam/junk folder if you don&apos;t receive the email. You can also regenerate
-                your token at any time using the <code>reissueTokenForMerchantApiProfile</code> endpoint.
+                <strong>Tip:</strong> Check your spam/junk folder if you don&apos;t receive the email. You can regenerate
+                your token at any time from the API Profile page.
               </InfoCallout>
             </section>
 
             <section id="first-request" data-section className="scroll-mt-32 mt-10">
               <div className="relative pl-6 border-l-2 border-purple-500/20 mb-4">
-                <div className="absolute -left-[11px] w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-purple-500/30">3</div>
+                <div className="absolute -left-[11px] w-5 h-5 rounded-full bg-purple-500 flex items-center justify-center text-[10px] font-bold text-white shadow-lg shadow-purple-500/30">2</div>
                 <h3 className="text-base font-semibold text-white mb-2">Make Your First Request</h3>
                 <p className="text-sm text-white/50 mb-3">
                   Use your merchant API key to list all available gift cards:
@@ -641,22 +590,6 @@ Content-Type: application/json`} />
               ]} />
               <CodeBlock language="bash" code={`curl -X POST \\
   "${BASE_URL}/api/merchant/giftCard/updateMerchantApiProfileGiftCardChargeType?type=CHARGE_ACCOUNT_BALANCE" \\
-  -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
-            </section>
-
-            <section id="reissue-token" data-section className="scroll-mt-32 mt-10">
-              <EndpointHeader
-                method="POST"
-                path="/api/merchant/reissueTokenForMerchantApiProfile"
-                title="Reissue API Token"
-                description="Regenerate your API key. The current key will be invalidated immediately and a new one will be sent to your email."
-              />
-              <InfoCallout variant="warning">
-                <strong>Caution:</strong> Reissuing your token immediately invalidates the current one. All applications
-                using the old key will receive authentication errors. Update your integrations promptly after reissuing.
-              </InfoCallout>
-              <CodeBlock language="bash" code={`curl -X POST \\
-  "${BASE_URL}/api/merchant/reissueTokenForMerchantApiProfile" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
             </section>
 
@@ -771,7 +704,16 @@ Content-Type: application/json`} />
                 one of the available denominations for the selected gift card.
               </p>
 
-              <p className="text-sm font-semibold text-white/80 mb-2">Request Body</p>
+              <InfoCallout variant="warning">
+                <strong>Idempotent-Key Required:</strong> This API expects a unique <code>Idempotent-Key</code> in the request headers to prevent accidental duplicate purchases. This should be a cryptographically generated UUID for every unique transaction attempt. Retries of the same transaction should send the original <code>Idempotent-Key</code>.
+              </InfoCallout>
+
+              <p className="text-sm font-semibold text-white/80 mt-4 mb-2">Headers</p>
+              <ParamTable params={[
+                { name: "Idempotent-Key", type: "string", required: true, description: "A unique key (UUID recommended) to guarantee idempotency and prevent duplicate charges." },
+              ]} />
+
+              <p className="text-sm font-semibold text-white/80 mt-4 mb-2">Request Body</p>
               <ParamTable params={[
                 { name: "productId", type: "integer (int64)", required: true, description: "The ID of the gift card product to purchase." },
                 { name: "unitPrice", type: "number (float)", required: true, description: "The denomination/amount of the gift card." },
@@ -782,6 +724,7 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X POST \\
   "${BASE_URL}/api/merchant/giftCard/purchaseGiftCard" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY" \\
+  -H "Idempotent-Key: 123e4567-e89b-12d3-a456-426614174000" \\
   -H "Content-Type: application/json" \\
   -d '{
     "productId": 1234,

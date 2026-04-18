@@ -29,8 +29,8 @@ export default function LandingHeader() {
   const navItems = [
     { label: "Rewards", href: "/rewards" },
     { label: "Buy Gift Cards", href: "/buy" },
+    { label: "Blog", href: "/blog" },
     { label: "For Developers", href: "/api-docs" },
-    { label: "Privacy Policy", href: "/privacy-policy" },
   ]
 
   const handleLogin = () => {

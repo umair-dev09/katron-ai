@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
+import Link from "next/link"
 
 interface RewardItemHeroProps {
   brandName: string
@@ -96,12 +97,10 @@ export default function RewardItemHero({ brandName }: RewardItemHeroProps) {
 
         {/* CTA Buttons */}
         <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-12 md:mb-16">
-          <button className="bg-white text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-purple-50 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform duration-200">
+          <Link href="/buy" className="bg-white text-purple-900 px-8 py-4 rounded-full font-semibold text-lg hover:bg-purple-50 transition-colors shadow-lg hover:shadow-xl transform hover:scale-105 transition-transform duration-200">
             Start Earning Now
-          </button>
-          <button className="border-2 border-white text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-white/10 transition-colors">
-            Learn More
-          </button>
+          </Link>
+
         </div>
 
         {/* App Store Badges */}

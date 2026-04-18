@@ -21,13 +21,14 @@ import {
   validateExpiryDate,
   validateCvv,
   type CardCreateRequestModel,
+  type SavedCard,
 } from "@/lib/api/checkout"
 import { toast } from "sonner"
 
 interface AddCardModalProps {
   isOpen: boolean
   onClose: () => void
-  onCardAdded: () => void
+  onCardAdded: (newCard?: SavedCard) => void
 }
 
 interface FormErrors {
@@ -125,7 +126,7 @@ export default function AddCardModal({ isOpen, onClose, onCardAdded }: AddCardMo
         cvv: cvv,
       }
 
-      await addCardToPayArc(cardData)
+      const result = await addCardToPayArc(cardData)
 
       toast.success("Card added successfully!", {
         description: "Your payment method has been saved securely.",
@@ -139,7 +140,7 @@ export default function AddCardModal({ isOpen, onClose, onCardAdded }: AddCardMo
       setCvv("")
       setErrors({})
 
-      onCardAdded()
+      onCardAdded(result.data as SavedCard | undefined)
       onClose()
     } catch (error) {
       console.error("Error adding card:", error)

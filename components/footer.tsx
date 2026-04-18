@@ -2,22 +2,30 @@
 
 import Link from "next/link"
 import Image from "next/image"
-import { Facebook, Twitter, Instagram, Linkedin, Mail, MapPin, Phone } from "lucide-react"
+import { Facebook, Twitter, Instagram, Mail } from "lucide-react"
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear()
-
   const footerLinks = {
     product: [
       { label: "Browse Gift Cards", href: "/buy" },
-      { label: "How It Works", href: "#how-it-works" },
+      { 
+        label: "How It Works", 
+        href: "#how-it-works",
+        onClick: (e: React.MouseEvent<HTMLAnchorElement>) => {
+          e.preventDefault();
+          const productsSection = document.getElementById('products');
+          if (productsSection) {
+            productsSection.scrollIntoView({ behavior: 'smooth' });
+          }
+        }
+      },
       { label: "Pricing", href: "#pricing" },
       { label: "Gift Card Balance", href: "#balance" },
     ],
     company: [
       { label: "About Us", href: "#about" },
       { label: "Careers", href: "#careers" },
-      { label: "Blog", href: "#blog" },
+      { label: "Blog", href: "/blog" },
       { label: "Press Kit", href: "#press" },
     ],
     support: [
@@ -30,16 +38,24 @@ export default function Footer() {
     legal: [
       { label: "Terms of Service", href: "/terms-of-service" },
       { label: "Privacy Policy", href: "/privacy-policy" },
+      { label: "Private Key Notice", href: "/private-key-notice" },
       { label: "Cookie Policy", href: "#cookies" },
       { label: "Disclaimer", href: "#disclaimer" },
     ],
   }
 
   const socialLinks = [
-    { icon: Facebook, href: "#", label: "Facebook" },
-    { icon: Twitter, href: "#", label: "Twitter" },
-    { icon: Instagram, href: "#", label: "Instagram" },
-    { icon: Linkedin, href: "#", label: "LinkedIn" },
+    {
+      icon: Instagram,
+      href: "https://www.instagram.com/katronaicorp?igsh=dWg2eWV4Z2U4OG5p",
+      label: "Instagram",
+    },
+    {
+      icon: Facebook,
+      href: "https://www.facebook.com/share/1Q1dCtps26/?mibextid=wwXIfr",
+      label: "Facebook",
+    },
+    { icon: Twitter, href: "https://x.com/aikatron5872?s=11", label: "X" },
   ]
 
   return (
@@ -70,14 +86,6 @@ export default function Footer() {
                 <Mail className="h-4 w-4" />
                 <span>support@katron.ai</span>
               </div>
-              <div className="flex items-center gap-2">
-                <Phone className="h-4 w-4" />
-                <span>+1 (555) 123-4567</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4" />
-                <span>San Francisco, CA</span>
-              </div>
             </div>
 
             {/* Social links */}
@@ -86,6 +94,8 @@ export default function Footer() {
                 <Link
                   key={social.label}
                   href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex h-9 w-9 items-center justify-center rounded-lg border border-border bg-background transition-colors hover:border-primary hover:bg-primary/10"
                   aria-label={social.label}
                 >
@@ -104,6 +114,7 @@ export default function Footer() {
                   <Link
                     href={link.href}
                     className="text-muted-foreground transition-colors hover:text-foreground"
+                    onClick={'onClick' in link ? link.onClick : undefined}
                   >
                     {link.label}
                   </Link>

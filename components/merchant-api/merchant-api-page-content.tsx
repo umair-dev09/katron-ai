@@ -8,9 +8,11 @@ import {
   createMerchantApiProfile,
   reissueApiToken,
   getMerchantFeePreference,
+  listMerchantGiftCardOrders,
   type MerchantApiProfile,
   type FeePreference,
   type ChargeType,
+  type MerchantOrder,
 } from "@/lib/api/merchant"
 import { AuthApiError } from "@/lib/api/auth"
 import { toast } from "sonner"
@@ -98,6 +100,11 @@ export default function MerchantApiPageContent() {
   const [showRegenerateDialog, setShowRegenerateDialog] = useState(false)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+
+  // Order history state
+  const [orders, setOrders] = useState<MerchantOrder[]>([])
+  const [isLoadingOrders, setIsLoadingOrders] = useState(false)
+  const [showOrders, setShowOrders] = useState(false)
 
   // Redirect non-merchant users
   useEffect(() => {
@@ -248,6 +255,43 @@ export default function MerchantApiPageContent() {
     }
   }
 
+  const fetchOrders = async () => {
+    setIsLoadingOrders(true)
+    try {
+      const response = await listMerchantGiftCardOrders()
+      if (response.status === 200 && Array.isArray(response.data)) {
+        setOrders(response.data)
+      } else {
+        setOrders([])
+      }
+    } catch {
+      setOrders([])
+    } finally {
+      setIsLoadingOrders(false)
+    }
+  }
+
+  const handleToggleOrders = () => {
+    if (!showOrders) {
+      fetchOrders()
+    }
+    setShowOrders(!showOrders)
+  }
+
+  const getStatusColor = (status?: string) => {
+    switch (status?.toUpperCase()) {
+      case "COMPLETED": case "SUCCESS": case "SUCCESSFUL": case "PAID": case "PAYMENT_COMPLETED":
+        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-green-200 dark:border-green-800"
+      case "PENDING": case "PROCESSING": case "PAYMENT_PENDING":
+        return "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-yellow-200 dark:border-yellow-800"
+      case "FAILED": case "CANCELLED": case "VOIDED":
+        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 border-red-200 dark:border-red-800"
+      case "REFUNDED":
+        return "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400 border-gray-200 dark:border-gray-800"
+      default:
+        return ""
+    }
+  }
 
 
   const copyToClipboard = (text: string, label: string) => {
@@ -571,6 +615,69 @@ export default function MerchantApiPageContent() {
                 </CardContent>
               </Card>
             )}
+
+            {/* Order History */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+                      <Activity className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-lg">Order History</CardTitle>
+                      <CardDescription>View your API gift card purchase orders</CardDescription>
+                    </div>
+                  </div>
+                  <Button variant="outline" onClick={handleToggleOrders} size="sm">
+                    {showOrders ? "Hide" : "View Orders"}
+                  </Button>
+                </div>
+              </CardHeader>
+              {showOrders && (
+                <CardContent>
+                  {isLoadingOrders ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                    </div>
+                  ) : orders.length === 0 ? (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <p className="text-sm">No orders found</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                      {orders.map((order) => (
+                        <div
+                          key={order.id || order.giftCardOrderId}
+                          className="flex items-center justify-between p-3 rounded-lg border bg-muted/30"
+                        >
+                          <div className="space-y-1">
+                            <p className="text-sm font-medium">{order.productName || order.brandName || "Gift Card"}</p>
+                            <p className="text-xs text-muted-foreground">
+                              Order #{order.giftCardOrderId || order.id}
+                              {order.recipientEmail && ` • ${order.recipientEmail}`}
+                            </p>
+                            {order.createdAt && (
+                              <p className="text-xs text-muted-foreground">
+                                {new Date(order.createdAt).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right space-y-1">
+                            <p className="text-sm font-bold">
+                              ${(order.totalAmount || order.amount || 0).toFixed(2)}
+                            </p>
+                            <Badge variant="secondary" className={`text-[10px] ${getStatusColor(order.status || order.paymentStatus || order.orderStatus)}`}>
+                              {order.status || order.paymentStatus || order.orderStatus || "Unknown"}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              )}
+            </Card>
 
             {/* Quick Start Guide */}
             <Card>

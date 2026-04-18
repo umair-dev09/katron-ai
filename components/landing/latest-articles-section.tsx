@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
+import Link from "next/link"
+import { listPublishedBlogs, formatBlogDate, type BlogPost } from "@/lib/api/blog"
 
 interface Article {
   id: number
@@ -14,9 +16,10 @@ interface Article {
     avatar: string
   }
   date: string
+  slug?: string
 }
 
-const articles: Article[] = [
+const fallbackArticles: Article[] = [
   {
     id: 1,
     image: "/images/i1.png",
@@ -82,8 +85,45 @@ const articles: Article[] = [
 export default function LatestArticlesSection() {
   const [currentIndex, setCurrentIndex] = useState(1)
   const [isVisible, setIsVisible] = useState(false)
+  const [articles, setArticles] = useState<Article[]>([])
   const sectionRef = useRef<HTMLElement>(null)
   const carouselRef = useRef<HTMLDivElement>(null)
+
+  // Fetch latest blogs from API
+  useEffect(() => {
+    async function fetchLatestBlogs() {
+      try {
+        const result = await listPublishedBlogs({
+          status: "PUBLISHED",
+          pageSize: 6,
+          page: 0,
+        })
+
+        if (result.status === 200 && result.data.content.length > 0) {
+          const mapped: Article[] = result.data.content.map((blog: BlogPost) => ({
+            id: blog.id,
+            image: blog.featuredImage || "/images/i1.png",
+            category: blog.category || "BLOG",
+            title: blog.title,
+            description: blog.excerpt || blog.subtitle || "",
+            author: {
+              name: blog.author?.name || "Katron AI",
+              avatar: blog.author?.avatar || "",
+            },
+            date: formatBlogDate(blog.createdAt),
+            slug: blog.slug,
+          }))
+          setArticles(mapped)
+        } else {
+          // Fallback to static data
+          setArticles(fallbackArticles)
+        }
+      } catch {
+        setArticles(fallbackArticles)
+      }
+    }
+    fetchLatestBlogs()
+  }, [])
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -152,17 +192,30 @@ export default function LatestArticlesSection() {
     >
       <div>
         {/* Section Header */}
-        <h2
-          className={`text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-12 md:mb-16 text-center md:text-center transition-all duration-1000 ${
-            isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-          }`}
-          style={{
-            fontFamily: "'Arial', sans-serif",
-            letterSpacing: "0.02em",
-          }}
-        >
-          LATEST ARTICLES
-        </h2>
+        <div className="flex items-center justify-between px-4 md:px-8 mb-12 md:mb-16 max-w-7xl mx-auto">
+          <h2
+            className={`text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 text-center md:text-left transition-all duration-1000 flex-1 ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+            style={{
+              fontFamily: "'Arial', sans-serif",
+              letterSpacing: "0.02em",
+            }}
+          >
+            LATEST ARTICLES
+          </h2>
+          <Link
+            href="/blog"
+            className={`hidden md:inline-flex items-center gap-1 text-sm font-medium text-gray-600 hover:text-gray-900 transition-all duration-1000 ${
+              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+            }`}
+          >
+            View all articles
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
+          </Link>
+        </div>
 
         {/* Articles Carousel */}
         <div
@@ -177,8 +230,9 @@ export default function LatestArticlesSection() {
           }}
         >
           {articles.map((article, index) => (
-            <article
+            <Link
               key={article.id}
+              href={article.slug ? `/blog/${article.slug}` : "/blog"}
               className="flex-shrink-0 w-[90vw] md:w-[380px] lg:w-[350px] bg-white rounded-3xl overflow-hidden transition-all duration-300 snap-start cursor-pointer border border-gray-200 hover:scale-101 hover:-translate-y-2"
             >
               {/* Article Image */}
@@ -216,7 +270,7 @@ export default function LatestArticlesSection() {
                   <p className="text-sm text-gray-500 mt-1">{article.date}</p>
                 </div>
               </div>
-            </article>
+            </Link>
           ))}
         </div>
 

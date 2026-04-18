@@ -84,6 +84,23 @@ export interface PaymentStatus {
 
 // ==================== Helpers ====================
 
+/**
+ * Generate a unique Idempotent-Key (UUID v4) for API v3.0.1 compliance.
+ * Required by: addCardToPayArc, purchaseGiftCardByMerchant, createGiftCardOrder
+ */
+function generateIdempotentKey(): string {
+  // Use crypto.randomUUID() if available (modern browsers), else fallback
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID()
+  }
+  // Fallback: manual UUID v4 generation
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0
+    const v = c === "x" ? r : (r & 0x3) | 0x8
+    return v.toString(16)
+  })
+}
+
 function getAuthHeaders(): HeadersInit {
   const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
   const headers: HeadersInit = {
@@ -101,8 +118,6 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   const data = await response.json()
   
   console.log("[Checkout API handleResponse] Raw data from server:", data)
-  console.log("[Checkout API handleResponse] data.data:", data.data)
-  console.log("[Checkout API handleResponse] data.data?.paymentFormUrl:", data.data?.paymentFormUrl)
   
   const isError = !response.ok || (data.status && data.status >= 400)
   
@@ -113,16 +128,18 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
     )
   }
   
+  // Preserve the raw payload so callers can find fields at any level.
+  // The API may return { status, message, data: { ... } } or { status, message, paymentFormUrl, ... }
   const result = {
     status: data.status || response.status,
     message: data.message || "",
-    data: data.data || data,
+    data: data.data ?? data, // use ?? so that data.data = 0 / "" / false is preserved
+    _raw: data, // keep raw response for deep URL extraction
   }
   
   console.log("[Checkout API handleResponse] Returning result:", result)
-  console.log("[Checkout API handleResponse] result.data.paymentFormUrl:", (result.data as any)?.paymentFormUrl)
   
-  return result
+  return result as ApiResponse<T> & { _raw?: unknown }
 }
 
 // ==================== Card Management APIs ====================
@@ -131,9 +148,12 @@ async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
  * Add a new card to PayArc for the merchant
  */
 export async function addCardToPayArc(cardData: CardCreateRequestModel): Promise<ApiResponse<SavedCard>> {
+  const headers = getAuthHeaders()
+  headers["Idempotent-Key"] = generateIdempotentKey()
+
   const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/addCardToPayArc`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers,
     body: JSON.stringify(cardData),
   })
   
@@ -173,9 +193,12 @@ export async function deleteCard(cardId: string): Promise<ApiResponse<null>> {
 export async function purchaseGiftCardMerchant(
   orderData: GiftcardOrderRequestMerchant
 ): Promise<ApiResponse<GiftCardOrder>> {
+  const headers = getAuthHeaders()
+  headers["Idempotent-Key"] = generateIdempotentKey()
+
   const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/purchaseGiftCardByMerchant`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers,
     body: JSON.stringify(orderData),
   })
   
@@ -203,9 +226,12 @@ export interface CreateOrderResponse {
 export async function createGiftCardOrder(
   orderData: GiftcardOrderRequest
 ): Promise<ApiResponse<CreateOrderResponse>> {
+  const headers = getAuthHeaders()
+  headers["Idempotent-Key"] = generateIdempotentKey()
+
   const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/createGiftCardOrder`, {
     method: "POST",
-    headers: getAuthHeaders(),
+    headers,
     body: JSON.stringify(orderData),
   })
   
@@ -213,14 +239,21 @@ export async function createGiftCardOrder(
 }
 
 /**
- * Check payment status for an order
+ * Check payment status for an order.
+ * API expects query params: type (string) and payarcTransactionId (string).
  */
-export async function checkPaymentStatus(orderId: string): Promise<ApiResponse<PaymentStatus>> {
-  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkPaymentStatus`, {
-    method: "POST",
-    headers: getAuthHeaders(),
-    body: JSON.stringify({ orderId }),
-  })
+export async function checkPaymentStatus(
+  payarcTransactionId: string,
+  type: string = "CARD"
+): Promise<ApiResponse<PaymentStatus>> {
+  const params = new URLSearchParams({ type, payarcTransactionId })
+  const response = await fetch(
+    `${EXTERNAL_API_BASE_URL}/api/giftCards/checkPaymentStatus?${params.toString()}`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+    }
+  )
   
   return handleResponse<PaymentStatus>(response)
 }
@@ -229,7 +262,7 @@ export async function checkPaymentStatus(orderId: string): Promise<ApiResponse<P
  * Check for both payment and gift card delivery status
  */
 export async function checkOrderStatus(orderId: string): Promise<ApiResponse<GiftCardOrder>> {
-  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkForPaymentAndGiftCardStatus?giftCardOrderId=${orderId}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/refreshGiftCardOrder?giftCardOrderId=${orderId}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -376,9 +409,56 @@ export function validateCvv(cvv: string, cardType: string): boolean {
 }
 
 /**
- * Calculate final price with discount
+ * Fee preference structure from the API
  */
-export function calculateFinalPrice(amount: number, discountPercentage: number): number {
-  const discount = (amount * discountPercentage) / 100
-  return Number((amount - discount).toFixed(2))
+export interface FeePreference {
+  giftCardFeeType?: string
+  feeFor1To99?: number
+  feeFor100To250?: number
+  feeFor251To500?: number
+  feeFor501To750?: number
+  feeFor751To999?: number
+  feePercentageFor1000To5000?: number
+}
+
+/**
+ * Get active fee preference for the current user type
+ */
+export async function getActiveFeePreference(
+  giftCardType: "FEE_TYPE_USER" | "FEE_TYPE_MERCHANT" | "FEE_TYPE_MERCHANT_API"
+): Promise<ApiResponse<FeePreference | null>> {
+  const response = await fetch(
+    `${EXTERNAL_API_BASE_URL}/api/giftCards/getActiveFeePreference?giftCardType=${giftCardType}`,
+    { method: "GET", headers: getAuthHeaders() }
+  )
+  return handleResponse<FeePreference | null>(response)
+}
+
+/**
+ * Calculate processing fee based on fee preference or defaults.
+ * Uses dynamic fee structure from API when available.
+ */
+export function calculateProcessingFee(amount: number, feePreference?: FeePreference | null): number {
+  if (feePreference) {
+    if (amount >= 1000) return Number(((amount * (feePreference.feePercentageFor1000To5000 ?? 1.5)) / 100).toFixed(2))
+    if (amount >= 751)  return feePreference.feeFor751To999 ?? 8.00
+    if (amount >= 501)  return feePreference.feeFor501To750 ?? 6.50
+    if (amount >= 251)  return feePreference.feeFor251To500 ?? 5.00
+    if (amount >= 100)  return feePreference.feeFor100To250 ?? 3.50
+    return feePreference.feeFor1To99 ?? 2.50
+  }
+  // Defaults
+  if (amount >= 1000) return Number(((amount * 1.5) / 100).toFixed(2))
+  if (amount >= 751)  return 8.00
+  if (amount >= 501)  return 6.50
+  if (amount >= 251)  return 5.00
+  if (amount >= 100)  return 3.50
+  return 2.50
+}
+
+/**
+ * Calculate final price - no discount applied (discount display removed)
+ */
+export function calculateFinalPrice(amount: number, _discountPercentage: number = 0): number {
+  return amount
 }

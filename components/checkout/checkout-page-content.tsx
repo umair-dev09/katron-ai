@@ -18,9 +18,12 @@ import {
   purchaseGiftCardMerchant,
   createGiftCardOrder,
   calculateFinalPrice,
+  calculateProcessingFee,
+  getActiveFeePreference,
   type SavedCard,
   type GiftcardOrderRequestMerchant,
   type GiftcardOrderRequest,
+  type FeePreference,
 } from "@/lib/api/checkout"
 
 // Fallback card data for when product info is not available
@@ -84,8 +87,11 @@ export default function CheckoutPageContent() {
   const [orderStatus, setOrderStatus] = useState<"processing" | "success" | "failed">("processing")
   const [orderSuccessMessage, setOrderSuccessMessage] = useState<string>("")
 
+  // Fee preference from API
+  const [feePreference, setFeePreference] = useState<FeePreference | null>(null)
+
   // Check if user is MERCHANT
-  const isMerchant = user?.accountType === "MERCHANT" || user?.accountType === "ADMIN"
+  const isMerchant = user?.accountType === "MERCHANT"
 
   // Intersection Observer to track How It Works section visibility
   useEffect(() => {
@@ -110,9 +116,9 @@ export default function CheckoutPageContent() {
     }
   }, [])
 
-  // Load saved cards for MERCHANT users
+  // Load saved cards for authenticated users (addCardToPayArc & getCards are user-controller endpoints)
   const loadSavedCards = useCallback(async () => {
-    if (!isMerchant) return
+    if (!user) return
 
     setLoadingCards(true)
     try {
@@ -126,18 +132,56 @@ export default function CheckoutPageContent() {
         setSelectedCardId(defaultCard.cardId || defaultCard.id?.toString())
       }
     } catch (error) {
-      console.error("Error loading cards:", error)
-      // Don't show error toast - cards might not exist yet
+      // Backend has a Spring Security SpEL syntax error on /api/user/getCards endpoint.
+      // This is a known backend issue – silently ignore so UI shows the "Add card" state.
+      console.warn("[Checkout] Could not load saved cards (backend security config issue):", error instanceof Error ? error.message : error)
     } finally {
       setLoadingCards(false)
     }
-  }, [isMerchant])
+  }, [user])
 
   useEffect(() => {
-    if (!authLoading && user && isMerchant) {
+    if (!authLoading && user) {
       loadSavedCards()
     }
-  }, [authLoading, user, isMerchant, loadSavedCards])
+  }, [authLoading, user, loadSavedCards])
+
+  // Fetch fee preference for current user type
+  useEffect(() => {
+    if (!authLoading && user) {
+      const feeType = user.accountType === "MERCHANT" ? "FEE_TYPE_MERCHANT" : "FEE_TYPE_USER"
+      getActiveFeePreference(feeType)
+        .then((res) => {
+          if (res.status === 200 && res.data) {
+            setFeePreference(res.data)
+          }
+        })
+        .catch(() => {
+          // Use defaults if fetch fails
+        })
+    }
+  }, [authLoading, user])
+
+  // Called when a new card is added via the modal.
+  // Optimistically adds the card to UI immediately (without relying on the
+  // broken /api/user/getCards backend endpoint), then attempts a background reload.
+  const handleCardAdded = useCallback(async (newCard?: SavedCard) => {
+    if (newCard) {
+      setSavedCards(prev => {
+        // Avoid duplicates in case the reload later succeeds
+        if (prev.some(c => c.id === newCard.id || (newCard.cardId && c.cardId === newCard.cardId))) return prev
+        return [...prev, newCard]
+      })
+      // Auto-select the newly added card if none selected
+      setSelectedCardId(prev => prev ?? (newCard.cardId || newCard.id?.toString()))
+    }
+    // Try a background reload to sync any server-side state
+    try {
+      await loadSavedCards()
+    } catch {
+      // loadSavedCards already handles errors silently
+    }
+  }, [loadSavedCards])
 
   // Pre-fill recipient email with user's email
   useEffect(() => {
@@ -189,6 +233,7 @@ export default function CheckoutPageContent() {
       isValid = false
     }
 
+    // Merchant must have a saved card selected for direct charge
     if (isMerchant && savedCards.length === 0) {
       toast.error("Please add a payment card first")
       setIsAddCardModalOpen(true)
@@ -282,44 +327,60 @@ export default function CheckoutPageContent() {
 
       const response = await createGiftCardOrder(orderData)
       
-      // Detailed client-side debugging
       console.log("[Checkout CLIENT] Full response object:", response)
-      console.log("[Checkout CLIENT] response.data:", response.data)
-      console.log("[Checkout CLIENT] response.data keys:", response.data ? Object.keys(response.data) : "no data")
-      console.log("[Checkout CLIENT] response.data.paymentFormUrl:", response.data?.paymentFormUrl)
-      console.log("[Checkout CLIENT] response.data.orderId:", response.data?.orderId)
-      
-      // Check for payment URL - paymentFormUrl is the primary field from PayArc
-      const paymentUrl = response.data?.paymentFormUrl ||
-                        response.data?.paymentUrl || 
-                        response.data?.payment_url || 
-                        response.data?.redirectUrl ||
-                        response.data?.redirect_url ||
-                        (response.data as any)?.url
+
+      // Deep-search helper: recursively look for a URL-valued key in an object
+      const findPaymentUrl = (obj: unknown, depth = 0): string | null => {
+        if (!obj || typeof obj !== "object" || depth > 4) return null
+        const urlKeys = [
+          "paymentFormUrl", "paymentUrl", "payment_url",
+          "redirectUrl", "redirect_url", "url", "formUrl", "checkoutUrl",
+        ]
+        for (const key of urlKeys) {
+          const val = (obj as Record<string, unknown>)[key]
+          if (typeof val === "string" && val.startsWith("http")) return val
+        }
+        // Search one level deeper (e.g. response.data.data.paymentFormUrl)
+        for (const val of Object.values(obj as Record<string, unknown>)) {
+          if (val && typeof val === "object") {
+            const found = findPaymentUrl(val, depth + 1)
+            if (found) return found
+          }
+        }
+        return null
+      }
+
+      // Try structured fields first, then deep search, then regex fallback
+      const paymentUrl =
+        findPaymentUrl(response) ||
+        findPaymentUrl((response as any)._raw) ||
+        null
 
       console.log("[Checkout CLIENT] Extracted paymentUrl:", paymentUrl)
 
       if (paymentUrl) {
-        // Redirect to external payment page
         console.log("[Checkout] Redirecting to payment URL:", paymentUrl)
         window.location.href = paymentUrl
       } else if (response.data?.orderId || response.data?.id) {
-        // If no payment URL but has order ID, show processing modal
+        // No payment URL but has order ID — backend may have charged a saved card directly
         const orderId = response.data.orderId || response.data.id?.toString() || null
         console.log("[Checkout] No payment URL, showing processing modal for order:", orderId)
         setCurrentOrderId(orderId)
         setOrderStatus("processing")
         setIsOrderModalOpen(true)
       } else if (response.status === 200 && response.data) {
-        // If response is successful but data structure is different, try to extract URL
-        console.log("[Checkout] Checking response data for URL:", response.data)
+        // Last resort: look for a URL anywhere in the stringified data
         const dataStr = typeof response.data === 'string' ? response.data : JSON.stringify(response.data)
-        const urlMatch = dataStr.match(/https?:\/\/[^\s"']+/)
+        const urlMatch = dataStr.match(/https?:\/\/[^\s"'\\}]+/)
         if (urlMatch) {
-          console.log("[Checkout] Found URL in response:", urlMatch[0])
+          console.log("[Checkout] Found URL in response via regex:", urlMatch[0])
           window.location.href = urlMatch[0]
         } else {
-          throw new Error(response.message || "No payment URL received from server")
+          // Response is successful but has no URL and no orderId — show generic processing
+          console.warn("[Checkout] Successful response with no payment URL or orderId:", response)
+          toast.error("Payment could not be initiated", {
+            description: "Please try again or contact support if the issue persists.",
+          })
         }
       } else {
         throw new Error(response.message || "Failed to create order")
@@ -345,13 +406,16 @@ export default function CheckoutPageContent() {
   }
 
   const finalPrice = selectedAmount 
-    ? calculateFinalPrice(selectedAmount, discountPercentage)
+    ? calculateFinalPrice(selectedAmount)
     : 0
+
+  const processingFee = selectedAmount ? calculateProcessingFee(selectedAmount, feePreference) : 0
+  const totalPrice = Number((finalPrice + processingFee).toFixed(2))
 
   // Check if we have valid product data
   if (!productId) {
     return (
-      <main className="min-h-screen bg-background flex items-center justify-center">
+      <main className="min-h-screen bg-background pt-24 md:pt-28 flex items-center justify-center">
         <div className="text-center space-y-4 p-8">
           <AlertCircle className="w-16 h-16 text-yellow-500 mx-auto" />
           <h1 className="text-2xl font-bold">No Gift Card Selected</h1>
@@ -367,8 +431,7 @@ export default function CheckoutPageContent() {
   }
 
   return (
-    <main className="min-h-screen bg-background">
-      {/* Header with Back Button */}
+    <main className="min-h-screen bg-background pt-24 md:pt-28">
       <div className="bg-background">
         <div className="max-w-7xl mx-auto px-4 md:px-8 pt-5">
           <button
@@ -480,48 +543,90 @@ export default function CheckoutPageContent() {
                 </div>
               </div>
 
-              {/* Step 3: Payment Method (MERCHANT only) */}
-              {isMerchant && (
-                <div className="space-y-3.5">
-                  <h2 className="text-lg font-bold text-foreground">3. Select payment method</h2>
-                  
-                  {loadingCards ? (
-                    <div className="flex items-center justify-center py-8">
-                      <Loader2 className="w-6 h-6 animate-spin text-primary" />
-                      <span className="ml-2 text-muted-foreground">Loading payment methods...</span>
-                    </div>
-                  ) : savedCards.length > 0 ? (
-                    <div className="space-y-3">
-                      {savedCards.map((card) => (
-                        <PaymentMethodCard
-                          key={card.cardId || card.id}
-                          card={card}
-                          isSelected={selectedCardId === (card.cardId || card.id?.toString())}
-                          onSelect={() => setSelectedCardId(card.cardId || card.id?.toString())}
-                        />
-                      ))}
-                      <AddNewCardButton onClick={() => setIsAddCardModalOpen(true)} />
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
-                        <div className="flex items-start gap-3">
-                          <CreditCard className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
-                          <div>
-                            <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                              No payment method saved
-                            </p>
-                            <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                              Add a credit or debit card to make purchases. Your card will be securely saved for future transactions.
-                            </p>
+              {/* Step 3: Payment Method */}
+              <div className="space-y-3.5">
+                <h2 className="text-lg font-bold text-foreground">
+                  3. {isMerchant ? "Select payment method" : "Payment method"}
+                </h2>
+                
+                {isMerchant ? (
+                  // MERCHANT: must select a saved card for direct charge
+                  <>
+                    {loadingCards ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="w-6 h-6 animate-spin text-primary" />
+                        <span className="ml-2 text-muted-foreground">Loading payment methods...</span>
+                      </div>
+                    ) : savedCards.length > 0 ? (
+                      <div className="space-y-3">
+                        {savedCards.map((card) => (
+                          <PaymentMethodCard
+                            key={card.cardId || card.id}
+                            card={card}
+                            isSelected={selectedCardId === (card.cardId || card.id?.toString())}
+                            onSelect={() => setSelectedCardId(card.cardId || card.id?.toString())}
+                          />
+                        ))}
+                        <AddNewCardButton onClick={() => setIsAddCardModalOpen(true)} />
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <div className="bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <CreditCard className="w-5 h-5 text-yellow-600 dark:text-yellow-400 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
+                                No payment method saved
+                              </p>
+                              <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
+                                Add a credit or debit card to make purchases. Your card will be securely saved for future transactions.
+                              </p>
+                            </div>
                           </div>
                         </div>
+                        <AddNewCardButton onClick={() => setIsAddCardModalOpen(true)} />
                       </div>
-                      <AddNewCardButton onClick={() => setIsAddCardModalOpen(true)} />
-                    </div>
-                  )}
-                </div>
-              )}
+                    )}
+                  </>
+                ) : (
+                  // USER: show saved cards if available, otherwise inform about secure checkout
+                  <>
+                    {savedCards.length > 0 ? (
+                      <div className="space-y-3">
+                        <p className="text-sm text-muted-foreground">
+                          Your saved card will be used for a faster checkout experience.
+                        </p>
+                        {savedCards.map((card) => (
+                          <PaymentMethodCard
+                            key={card.cardId || card.id}
+                            card={card}
+                            isSelected={selectedCardId === (card.cardId || card.id?.toString())}
+                            onSelect={() => setSelectedCardId(card.cardId || card.id?.toString())}
+                          />
+                        ))}
+                        <AddNewCardButton onClick={() => setIsAddCardModalOpen(true)} />
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                          <div className="flex items-start gap-3">
+                            <CreditCard className="w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5" />
+                            <div>
+                              <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                                Secure payment via PayArc
+                              </p>
+                              <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                                You&apos;ll be redirected to a secure payment page to enter your card details. You can also save a card for faster checkout next time.
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                        <AddNewCardButton onClick={() => setIsAddCardModalOpen(true)} />
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
 
               {/* Summary Card */}
               {selectedAmount && (
@@ -536,17 +641,15 @@ export default function CheckoutPageContent() {
                       <span className="text-muted-foreground">Amount</span>
                       <span className="font-semibold text-foreground">${selectedAmount}</span>
                     </div>
-                    {discountPercentage > 0 && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Discount</span>
-                        <span className="font-semibold text-green-600">-{discountPercentage}%</span>
-                      </div>
-                    )}
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Processing Fee</span>
+                      <span className="font-semibold text-foreground">${processingFee.toFixed(2)}</span>
+                    </div>
                     <div className="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-foreground">Total</span>
                         <span className="font-bold text-foreground text-lg">
-                          ${finalPrice.toFixed(2)}
+                          ${totalPrice.toFixed(2)}
                         </span>
                       </div>
                     </div>
@@ -566,7 +669,7 @@ export default function CheckoutPageContent() {
                     Processing...
                   </span>
                 ) : (
-                  <>Buy Now {selectedAmount && `- $${finalPrice.toFixed(2)}`}</>
+                  <>Buy Now {selectedAmount && `- $${totalPrice.toFixed(2)}`}</>
                 )}
               </Button>
 
@@ -588,7 +691,7 @@ export default function CheckoutPageContent() {
       <AddCardModal
         isOpen={isAddCardModalOpen}
         onClose={() => setIsAddCardModalOpen(false)}
-        onCardAdded={loadSavedCards}
+        onCardAdded={handleCardAdded}
       />
 
       {/* Order Status Modal */}

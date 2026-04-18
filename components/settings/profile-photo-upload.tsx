@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { toast } from "sonner"
 import { useAuth } from "@/lib/auth-context"
+import { resolveFileUrl } from "@/lib/api/storage"
 import { cn } from "@/lib/utils"
 
 interface ProfilePhotoUploadProps {
@@ -15,19 +16,39 @@ interface ProfilePhotoUploadProps {
 }
 
 export default function ProfilePhotoUpload({ currentPhoto, userName, onPhotoChange }: ProfilePhotoUploadProps) {
-  const { uploadProfilePhoto, updateProfilePhoto, isLoading } = useAuth()
+  const { uploadProfilePhoto, updateProfilePhoto, isLoading, user } = useAuth()
   const [isUploading, setIsUploading] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(currentPhoto || null)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Update preview when currentPhoto changes
+  // Resolve the profile photo for display.
+  // The stored value may be a bare filename (e.g. "1234567890-photo.jpg") when it
+  // has been saved via uploadGenericFile. Resolve it to a fresh presigned URL on mount.
   useEffect(() => {
-    if (currentPhoto) {
-      setPreviewUrl(currentPhoto)
+    if (!currentPhoto) {
+      // Fall back to any locally-cached photo if the server has none
+      if (user?.id) {
+        const localKey = `profile_photo_${user.id}`
+        const local = typeof window !== "undefined" ? localStorage.getItem(localKey) : null
+        if (local) setPreviewUrl(local)
+      }
+      return
     }
-  }, [currentPhoto])
+
+    if (currentPhoto.startsWith("http") || currentPhoto.startsWith("data:")) {
+      // Already a usable URL — use directly
+      setPreviewUrl(currentPhoto)
+      return
+    }
+
+    // Bare filename — resolve via getGenericFile to get a fresh presigned URL
+    const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
+    resolveFileUrl(currentPhoto, "FOLDER_TYPE_USER", token || undefined).then((url) => {
+      setPreviewUrl(url)
+    })
+  }, [currentPhoto, user?.id])
 
   const getInitials = (name?: string) => {
     if (!name) return "U"
@@ -85,15 +106,16 @@ export default function ProfilePhotoUpload({ currentPhoto, userName, onPhotoChan
       const uploadResult = await uploadProfilePhoto(file)
       clearInterval(progressInterval)
 
-      console.log("[ProfilePhoto] Upload result:", uploadResult)
+      console.log("[ProfilePhoto] Upload result:", JSON.stringify(uploadResult))
 
       if (uploadResult.success && uploadResult.url) {
         setUploadProgress(95)
         
-        console.log("[ProfilePhoto] Photo URL to save:", uploadResult.url)
-        
-        // Update user profile with the new photo URL
-        const updateResult = await updateProfilePhoto(uploadResult.url)
+        // Pass the plain fileName to the backend — NOT the presigned URL.
+        // The presigned URL expires; the filename is the durable reference the
+        // backend stores and resolves on demand via getGenericFile.
+        const fileNameToSave = uploadResult.fileName || uploadResult.url
+        const updateResult = await updateProfilePhoto(fileNameToSave)
         
         if (updateResult.success) {
           setUploadProgress(100)

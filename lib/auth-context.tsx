@@ -23,7 +23,6 @@ import {
 import {
   updateUserInformation as apiUpdateUserInfo,
   updateUserPhoto as apiUpdateUserPhoto,
-  uploadFile as apiUploadFile,
   changePassword as apiChangePassword,
   sendPhoneVerificationOtp as apiSendPhoneOtp,
   verifyPhoneOtp as apiVerifyPhoneOtp,
@@ -31,6 +30,46 @@ import {
   type UpdateUserModel,
   type ChangePasswordModel,
 } from "@/lib/api/user"
+import { uploadFile as storageUploadFile, resolveFileUrl } from "@/lib/api/storage"
+
+/**
+ * Resolve user.profilePhoto to a fresh presigned URL if it is a raw S3 key.
+ * Always saves the raw key back to localStorage so it can be re-resolved on
+ * next load; only the in-memory user state carries the presigned URL.
+ */
+async function resolveUserProfilePhoto(userData: UserData, token: string): Promise<UserData> {
+  const photo = userData.profilePhoto
+  if (!photo || photo.startsWith("data:") || photo.startsWith("blob:")) return userData
+
+  let keyToResolve = photo
+
+  if (photo.startsWith("http")) {
+    // If this is an S3 presigned URL, extract the raw key so we fetch a fresh one.
+    // (Presigned URLs expire; we should never show them stale.)
+    if (photo.includes("X-Amz-") || photo.includes("amazonaws.com")) {
+      try {
+        const pathname = decodeURIComponent(new URL(photo).pathname)
+        const idx = pathname.indexOf("FOLDER_TYPE_")
+        if (idx >= 0) {
+          keyToResolve = pathname.slice(idx) // e.g. "FOLDER_TYPE_USER/1234-photo.jpg"
+        } else {
+          return userData // can't extract key — show as-is
+        }
+      } catch {
+        return userData
+      }
+    } else {
+      return userData // regular CDN/external URL — leave as-is
+    }
+  }
+
+  try {
+    const resolved = await resolveFileUrl(keyToResolve, "FOLDER_TYPE_USER", token)
+    return { ...userData, profilePhoto: resolved }
+  } catch {
+    return userData
+  }
+}
 
 interface AuthContextType {
   user: UserData | null
@@ -39,7 +78,7 @@ interface AuthContextType {
   isInitialized: boolean
   pendingVerificationEmail: string | null
   pendingVerificationToken: string | null
-  login: (email: string, password: string) => Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }>
+  login: (email: string, password: string, accountType?: "MERCHANT" | "USER" | "ADMIN" | "SUPER_ADMIN") => Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }>
   googleLogin: (idToken: string, accountType: "MERCHANT" | "USER") => Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }>
   register: (data: RegisterModel) => Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }>
   verifyEmail: (otp: string) => Promise<{ success: boolean; message?: string }>
@@ -51,7 +90,7 @@ interface AuthContextType {
   // New user profile functions
   updateProfile: (data: UpdateUserModel) => Promise<{ success: boolean; message?: string }>
   updateProfilePhoto: (photoUrl: string) => Promise<{ success: boolean; message?: string }>
-  uploadProfilePhoto: (file: File) => Promise<{ success: boolean; message?: string; url?: string }>
+  uploadProfilePhoto: (file: File) => Promise<{ success: boolean; message?: string; url?: string; fileName?: string }>
   changePassword: (data: ChangePasswordModel) => Promise<{ success: boolean; message?: string }>
   sendPhoneOtp: () => Promise<{ success: boolean; message?: string }>
   verifyPhone: (otp: string) => Promise<{ success: boolean; message?: string }>
@@ -79,15 +118,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (token && savedUser) {
           // First, set the saved user immediately so UI shows logged in state
-          setUser(savedUser)
+          // Resolve profile photo so header/settings show the image right away
+          const initialUser = await resolveUserProfilePhoto(savedUser, token).catch(() => savedUser)
+          setUser(initialUser)
           
           // Then try to validate/refresh from server (don't block on this)
           try {
             const response = await getCurrentUser()
             console.log("[Auth Init] getCurrentUser response:", response.status, response.message)
             if (response.status === 200 && response.data) {
-              setUser(response.data)
-              saveUserData(response.data)
+              saveUserData(response.data) // persist raw key
+              const resolvedUser = await resolveUserProfilePhoto(response.data, token).catch(() => response.data)
+              setUser(resolvedUser)
               console.log("[Auth Init] User refreshed from server")
             } else if (response.status === 401) {
               // Token is invalid/expired - clear auth data
@@ -123,13 +165,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setPendingVerificationToken(null)
   }, [])
 
-  const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }> => {
+  const login = useCallback(async (email: string, password: string, accountType: "MERCHANT" | "USER" | "ADMIN" | "SUPER_ADMIN" = "USER"): Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }> => {
     setIsLoading(true)
     try {
-      const response = await apiLogin(email, password)
+      const response = await apiLogin(email, password, accountType)
       
       if (response.data) {
         const { token, user: userData } = response.data
+        
+        // Reject admin/super_admin credentials in user/merchant console
+        if (userData && (userData.accountType === "ADMIN" || userData.accountType === "SUPER_ADMIN")) {
+          return {
+            success: false,
+            message: "Admin accounts cannot log in here. Please use the admin portal."
+          }
+        }
         
         // Check if email verification is needed
         if (userData && !userData.emailVerified) {
@@ -190,8 +240,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     accountType: "MERCHANT" | "USER"
   ): Promise<{ success: boolean; needsVerification?: boolean; message?: string; email?: string }> => {
     setIsLoading(true)
+
+    const attemptGoogleLogin = async (): Promise<ApiResponse<LoginResponse>> => {
+      return apiGoogleLogin(idToken, accountType)
+    }
+
     try {
-      const response = await apiGoogleLogin(idToken, accountType)
+      let response: ApiResponse<LoginResponse>
+
+      try {
+        response = await attemptGoogleLogin()
+      } catch (firstError) {
+        // First attempt failed — this commonly happens on cold starts or when
+        // the backend needs a moment to initialise for a brand-new Google user.
+        // Wait briefly then retry once before surfacing the error.
+        console.warn("[GoogleLogin] First attempt failed, retrying in 1.5s…", firstError)
+        await new Promise((resolve) => setTimeout(resolve, 1500))
+        response = await attemptGoogleLogin()
+      }
       
       console.log("[GoogleLogin] Full response:", JSON.stringify(response, null, 2))
       
@@ -382,8 +448,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const response = await getCurrentUser()
       if (response.data) {
-        setUser(response.data)
-        saveUserData(response.data)
+        saveUserData(response.data) // persist raw key
+        const token = getAuthToken()
+        const resolvedUser = token
+          ? await resolveUserProfilePhoto(response.data, token).catch(() => response.data)
+          : response.data
+        setUser(resolvedUser)
       }
     } catch (error) {
       console.error("Failed to refresh user:", error)
@@ -416,9 +486,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refreshUser])
 
   const updateProfilePhoto = useCallback(async (photoUrl: string): Promise<{ success: boolean; message?: string }> => {
+    // If the URL is a local base64 data URL, skip the backend call entirely.
+    // The backend only accepts real S3 URLs and sending base64 as a query param
+    // causes ERR_CONNECTION_RESET due to the URL being too long.
+    if (photoUrl.startsWith("data:") || photoUrl === "") {
+      return { success: true, message: "Profile photo updated successfully!" }
+    }
+
+    // The backend updateUserPhoto endpoint expects a bare filename like "1234-photo.jpg".
+    // If the stored key includes the folder prefix ("FOLDER_TYPE_USER/1234-photo.jpg"),
+    // strip it off so the backend doesn't end up storing a double-prefixed S3 path.
+    let photoParam = photoUrl
+    const folderPrefixes = ["FOLDER_TYPE_USER/", "FOLDER_TYPE_BLOG_ASSETS/", "FOLDER_TYPE_BLOG_AUTHOR_AVATAR/"]
+    for (const prefix of folderPrefixes) {
+      if (photoParam.startsWith(prefix)) {
+        photoParam = photoParam.slice(prefix.length)
+        break
+      }
+    }
+
     setIsLoading(true)
     try {
-      const response = await apiUpdateUserPhoto(photoUrl)
+      const response = await apiUpdateUserPhoto(photoParam)
       
       if (response.status === 200) {
         // Refresh user data after successful update
@@ -437,63 +526,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [refreshUser])
 
-  const uploadProfilePhoto = useCallback(async (file: File): Promise<{ success: boolean; message?: string; url?: string }> => {
+  const uploadProfilePhoto = useCallback(async (file: File): Promise<{ success: boolean; message?: string; url?: string; fileName?: string }> => {
     setIsLoading(true)
     try {
-      // Generate a unique filename
-      const timestamp = Date.now()
-      const extension = file.name.split('.').pop() || 'jpg'
-      const fileName = `profile_${user?.id || 'user'}_${timestamp}.${extension}`
-      const folderName = "profile-photos"
-      
-      const EXTERNAL_API = "https://api.ktngiftcard.katronai.com/katron-gift-card"
       const token = typeof window !== "undefined" ? localStorage.getItem("authToken") : null
+      if (!token) {
+        return { success: false, message: "Not authenticated — please log in again." }
+      }
 
-      // Step 1: Get presigned URL from storage API
-      const presignedResponse = await fetch(
-        `${EXTERNAL_API}/api/storage/uploadGenericFile?folderName=${encodeURIComponent(folderName)}&fileName=${encodeURIComponent(fileName)}`,
-        {
-          method: "POST",
-          headers: {
-            ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-          },
+      const result = await storageUploadFile(file, "FOLDER_TYPE_USER", token)
+
+      if (result.success) {
+        return {
+          success: true,
+          message: "Photo uploaded successfully!",
+          // presignedDisplayUrl is used for immediate display in the UI
+          url: result.presignedDisplayUrl || result.fileName,
+          // fileName is the plain reference to persist via updateUserPhoto
+          fileName: result.fileName,
         }
-      )
-      const presignedData = await presignedResponse.json()
-
-      if (presignedData.status !== 200 || !presignedData.data) {
-        return { success: false, message: presignedData.message || "Failed to get upload URL" }
       }
 
-      const presignedUrl = presignedData.data
-      const baseS3Url = presignedUrl.split("?")[0]
-
-      // Step 2: Upload file directly to S3
-      const fileBuffer = await file.arrayBuffer()
-      const uploadResponse = await fetch(presignedUrl, {
-        method: "PUT",
-        headers: {
-          "Content-Type": file.type || "application/octet-stream",
-        },
-        body: fileBuffer,
-      })
-
-      if (!uploadResponse.ok) {
-        return { success: false, message: "Failed to upload photo to storage" }
-      }
-
-      console.log("[Auth Context] Photo uploaded to S3:", baseS3Url)
-      
-      return { success: true, message: "Photo uploaded successfully!", url: baseS3Url }
+      return { success: false, message: result.message || "Upload failed. Please try again." }
     } catch (error) {
-      const message = error instanceof AuthApiError 
-        ? error.message 
-        : "Failed to upload photo. Please try again."
+      const message =
+        error instanceof AuthApiError ? error.message : "Failed to upload photo. Please try again."
       return { success: false, message }
     } finally {
       setIsLoading(false)
     }
-  }, [user?.id])
+  }, [])
 
   const changePasswordFn = useCallback(async (data: ChangePasswordModel): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true)

@@ -58,7 +58,8 @@ export function LoginSection({ userType, onToggleMode, onNeedsVerification, onLo
 
     setIsLoading(true)
     try {
-      const result = await login(email.trim().toLowerCase(), password)
+      const accountType: "MERCHANT" | "USER" = userType === "merchant" ? "MERCHANT" : "USER"
+      const result = await login(email.trim().toLowerCase(), password, accountType)
 
       if (result.success) {
         toast.success(result.message || "Welcome back!")

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from "react"
 import Image from "next/image"
+import Link from "next/link"
 
 export default function CTAWithImageSection() {
   const [isVisible, setIsVisible] = useState(false)
@@ -74,10 +75,12 @@ LETS SEE WHAT KATRON AI CAN DO FOR YOU             </h2>
                 If it's not the right fit, we'll tell you. No pressure. Just clarity.
                 </p>
 
-              <button className="group relative px-8 py-3 bg-[#9333EA] hover:bg-[#7e22ce] text-white text-md lg:text-lg font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
-                Book a Demo
-                <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></span>
-              </button>
+              <Link href="https://calendly.com/atronaipay/30min" target="_blank" rel="noopener noreferrer">
+                <button className="group relative w-full sm:w-auto px-8 py-3 bg-[#9333EA] hover:bg-[#7e22ce] text-white text-md lg:text-lg font-semibold rounded-lg transition-all duration-300 shadow-lg hover:shadow-xl">
+                  Book a Demo
+                  <span className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 rounded-lg transition-opacity duration-300"></span>
+                </button>
+              </Link>
               <span className="block mt-2 text-gray-400 text-[13px]">15 minutes. Real answers. Zero fluff.</span>
             </div>
           </div>

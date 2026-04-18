@@ -504,22 +504,26 @@ function UsersPageContent() {
                           >
                             <RefreshCw className="h-3.5 w-3.5" />
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openOrderActionDialog(order, "refund")}
-                            title="Refund"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openOrderActionDialog(order, "void")}
-                            title="Void"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                          </Button>
+                          {["SUCCESS", "SUCCESSFUL", "COMPLETED", "PAYMENT_COMPLETED", "PAID"].includes((order.status || "").toUpperCase()) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openOrderActionDialog(order, "refund")}
+                              title="Refund"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {["SUCCESS", "SUCCESSFUL", "COMPLETED", "PAYMENT_COMPLETED", "PAID"].includes((order.status || "").toUpperCase()) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openOrderActionDialog(order, "void")}
+                              title="Void"
+                            >
+                              <XCircle className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

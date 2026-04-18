@@ -6,7 +6,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
 
 // Admin user types
-type AdminAccountType = "ADMIN" | "SUPER_ADMIN"
+type AdminAccountType = "ADMIN" | "SUPER_ADMIN" | "BLOG_ADMIN"
 
 export interface AdminUserData {
   id: number
@@ -106,7 +106,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
         if (token && savedAdmin) {
           // Verify the saved user is an admin
-          if (savedAdmin.accountType === "ADMIN" || savedAdmin.accountType === "SUPER_ADMIN") {
+          if (["ADMIN", "SUPER_ADMIN", "BLOG_ADMIN"].includes(savedAdmin.accountType)) {
             setAdmin(savedAdmin)
 
             // Validate token with server
@@ -123,7 +123,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
                 const data: ApiResponse<AdminUserData> = await response.json()
                 if (data.status === 200 && data.data) {
                   // Verify returned user is still an admin
-                  if (data.data.accountType === "ADMIN" || data.data.accountType === "SUPER_ADMIN") {
+                  if (["ADMIN", "SUPER_ADMIN", "BLOG_ADMIN"].includes(data.data.accountType)) {
                     setAdmin(data.data)
                     saveAdminData(data.data)
                     console.log("[Admin Auth Init] Admin refreshed from server")
@@ -162,24 +162,32 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const login = useCallback(async (email: string, password: string): Promise<{ success: boolean; message?: string }> => {
     setIsLoading(true)
     try {
-      const params = new URLSearchParams({ email, password })
-      
-      const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/login?${params.toString()}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
+      // Try ADMIN first, then SUPER_ADMIN — both are valid admin account types
+      let response = null
+      let loginData: ApiResponse<AdminLoginResponse> | null = null
 
-      const data: ApiResponse<AdminLoginResponse> = await response.json()
+      for (const accountType of ["ADMIN", "SUPER_ADMIN", "BLOG_ADMIN"] as const) {
+        const params = new URLSearchParams({ email, password, accountType })
+        response = await fetch(`${EXTERNAL_API_BASE_URL}/api/auth/login?${params.toString()}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+        })
+        loginData = await response.json() as ApiResponse<AdminLoginResponse>
+        console.log(`[Admin Login] accountType=${accountType} status:`, loginData.status)
+        // If login succeeded with this accountType, stop trying
+        if (loginData.data?.token) break
+      }
+
+      const data = loginData!
 
       console.log("[Admin Login] Response:", { status: data.status, hasData: !!data.data })
 
       if (data.data) {
         const { token, user: userData } = data.data
 
-        // CRITICAL: Verify the user is an admin
-        if (userData.accountType !== "ADMIN" && userData.accountType !== "SUPER_ADMIN") {
+        // CRITICAL: Verify the user is an admin or blog admin
+        const allowedTypes: string[] = ["ADMIN", "SUPER_ADMIN", "BLOG_ADMIN"]
+        if (!allowedTypes.includes(userData.accountType)) {
           console.log("[Admin Login] Access denied - not an admin account")
           return { 
             success: false, 

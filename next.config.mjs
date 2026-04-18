@@ -15,7 +15,12 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 's3.amazonaws.com',
-        pathname: '/rld-flags/**',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.amazonaws.com',
+        pathname: '/**',
       },
     ],
   },

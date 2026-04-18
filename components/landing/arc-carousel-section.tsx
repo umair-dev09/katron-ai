@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState, useCallback, useEffect, useRef } from "react"
+import Link from "next/link"
 
 interface CarouselCard {
   id: number
@@ -203,9 +204,8 @@ export default function ArcCarouselSection() {
         {/* Title & description */}
         <div className="max-w-5xl mx-auto px-4 sm:px-6 md:px-8">
           <h2
-            className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium text-white uppercase tracking-tight leading-[0.95] text-center mb-6 md:mb-8 transition-all duration-700 ease-out ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
+            className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl font-medium text-white uppercase tracking-tight leading-[0.95] text-center mb-6 md:mb-8 transition-all duration-700 ease-out ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
             style={{
               fontFamily: "'Arial SemiBold', 'Helvetica Neue', Helvetica, sans-serif",
               letterSpacing: "-0.02em",
@@ -214,9 +214,8 @@ export default function ArcCarouselSection() {
             YOUR FAVORITE BRANDS. INSTANTLY YOURS.
           </h2>
           <p
-            className={`text-white text-sm sm:text-base md:text-lg max-w-2xl mx-auto text-center mb-4 md:mb-6 leading-relaxed transition-all duration-700 ease-out delay-100 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
+            className={`text-white text-sm sm:text-base md:text-lg max-w-2xl mx-auto text-center mb-4 md:mb-6 leading-relaxed transition-all duration-700 ease-out delay-100 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+              }`}
           >
             Experience the next generation of digital gifting where leading brands are always just a tap away.
           </p>
@@ -224,11 +223,10 @@ export default function ArcCarouselSection() {
 
         {/* Arc carousel */}
         <div
-          className={`relative w-full flex justify-center items-end transition-all duration-700 ease-out ${
-            isVisible
+          className={`relative w-full flex justify-center items-end transition-all duration-700 ease-out ${isVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-12"
-          }`}
+            }`}
           style={{ height: "clamp(380px, 50vw, 540px)", perspective: "1400px" }}
         >
           {cardsData.map((card, index) => {
@@ -260,9 +258,8 @@ export default function ArcCarouselSection() {
                 }}
               >
                 <div
-                  className={`relative w-full h-full rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl transition-shadow duration-500 ${
-                    isActive ? "shadow-black/60" : "shadow-black/40"
-                  }`}
+                  className={`relative w-full h-full rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl transition-shadow duration-500 ${isActive ? "shadow-black/60" : "shadow-black/40"
+                    }`}
                   style={{
                     border: isActive
                       ? `2px solid ${card.color}40`
@@ -309,11 +306,10 @@ export default function ArcCarouselSection() {
 
         {/* Info section below carousel */}
         <div
-          className={`relative z-20 ml-12 flex flex-col items-center transition-all duration-700 ease-out delay-200 ${
-            isVisible
+          className={`relative z-20 ml-12 flex flex-col items-center transition-all duration-700 ease-out delay-200 ${isVisible
               ? "opacity-100 translate-y-0"
               : "opacity-0 translate-y-8"
-          }`}
+            }`}
         >
           {/* Brand name */}
           <div className="relative h-12 md:h-14 flex items-center justify-center overflow-hidden">
@@ -382,17 +378,19 @@ export default function ArcCarouselSection() {
           </div>
 
           {/* Read more button */}
-          <button
-            className="mt-6 md:mt-8 px-8 py-3 rounded-xl text-white text-sm md:text-base font-semibold transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-lg"
-            style={{
-              background: activeCard.color,
-              boxShadow: `0 4px 24px ${activeCard.color}30`,
-              transition:
-                "background 0.5s ease, box-shadow 0.5s ease, transform 0.2s ease",
-            }}
-          >
-            Buy Now
-          </button>
+          <Link href="/buy">
+            <button
+              className="mt-6 md:mt-8 px-8 py-3 rounded-xl text-white text-sm md:text-base font-semibold transition-all duration-300 hover:scale-105 active:scale-95 hover:shadow-lg"
+              style={{
+                background: activeCard.color,
+                boxShadow: `0 4px 24px ${activeCard.color}30`,
+                transition:
+                  "background 0.5s ease, box-shadow 0.5s ease, transform 0.2s ease",
+              }}
+            >
+              Buy Now
+            </button>
+          </Link>
         </div>
       </div>
     </section>

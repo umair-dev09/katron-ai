@@ -47,9 +47,6 @@ function getAuthHeadersForUpload(): HeadersInit {
 // Helper function to handle API responses
 async function handleResponse<T>(response: Response): Promise<ApiResponse<T>> {
   const data = await response.json()
-  
-  console.log("[User API] Response:", { status: response.status, data })
-  
   const isError = !response.ok || (data.status && data.status >= 400)
   
   if (isError) {
@@ -94,24 +91,37 @@ export async function updateUserPhoto(photoUrl: string): Promise<ApiResponse<Use
 }
 
 /**
- * Upload a file
+ * Upload a file via presigned S3 URL:
+ * 1. POST with no body to get presigned PUT URL from backend
+ * 2. PUT file directly to S3 using that URL
  */
 export async function uploadFile(file: File, folderName: string, fileName: string): Promise<ApiResponse<string>> {
-  const formData = new FormData()
-  formData.append("file", file)
-  
-  const params = new URLSearchParams({
-    folderName,
-    fileName,
-  })
-  
-  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/uploadGenericFile?${params.toString()}`, {
+  const params = new URLSearchParams({ folderName, fileName })
+  const contentType = file.type || "image/png"
+
+  // Step 1: Get presigned PUT URL (no file body)
+  const presignRes = await fetch(`${EXTERNAL_API_BASE_URL}/api/storage/uploadGenericFile?${params.toString()}`, {
     method: "POST",
     headers: getAuthHeadersForUpload(),
-    body: formData,
   })
-  
-  return handleResponse<string>(response)
+  const presignData = await presignRes.json()
+
+  if (presignData.status !== 200 || !presignData.data) {
+    return { status: presignData.status || 500, message: presignData.message || "Failed to get upload URL", data: "" }
+  }
+
+  // Step 2: PUT file to S3 (no auth header — presigned URL is self-authenticated)
+  const s3Res = await fetch(presignData.data, {
+    method: "PUT",
+    headers: { "Content-Type": contentType },
+    body: file,
+  })
+
+  if (!s3Res.ok) {
+    return { status: s3Res.status, message: `S3 upload failed: ${s3Res.status}`, data: "" }
+  }
+
+  return { status: 200, message: "Upload successful", data: presignData.data }
 }
 
 /**
@@ -168,4 +178,30 @@ export async function resendPhoneVerificationOtp(): Promise<ApiResponse<null>> {
   })
   
   return handleResponse<null>(response)
+}
+
+/**
+ * Update user address  
+ * POST /api/user/updateUserAddress
+ */
+export interface RegisterAddressModel {
+  addressLine1: string
+  addressLine2?: string
+  currentLocation?: string
+  currentLocationLat?: number
+  currentLocationLng?: number
+  city?: string
+  country: string // 2-char ISO code
+  state?: string
+  zipcode?: string
+}
+
+export async function updateUserAddress(address: RegisterAddressModel): Promise<ApiResponse<UserData>> {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/user/updateUserAddress`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(address),
+  })
+  
+  return handleResponse<UserData>(response)
 }

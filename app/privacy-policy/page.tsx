@@ -1,4 +1,14 @@
+import type { Metadata } from "next"
 import Footer from "@/components/footer"
+
+export const metadata: Metadata = {
+  title: "Privacy Policy",
+  description:
+    "Read the Katron AI Privacy Policy. Learn how KatronAI, Inc. collects, uses, and protects your information across our website, apps, and services.",
+  alternates: {
+    canonical: "https://katronai.com/privacy-policy",
+  },
+}
 
 export default function PrivacyPolicyPage() {
   return (

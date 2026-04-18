@@ -63,6 +63,8 @@ import { RichTextEditor } from "@/components/ui/rich-text-editor"
 
 const EXTERNAL_API_BASE_URL = "https://api.ktngiftcard.katronai.com/katron-gift-card"
 
+import { resolveFileUrl } from "@/lib/api/storage"
+
 interface BlogAuthor {
   id: number
   name: string
@@ -86,6 +88,25 @@ function generateSlug(title: string): string {
     .replace(/^-+|-+$/g, "") // Remove leading/trailing hyphens
 }
 
+/**
+ * Extract the S3 object key from whatever the upload API returns in data.data.
+ * The backend may return a presigned URL, a plain S3 key, or just the filename.
+ */
+function extractStoredKey(apiData: unknown, fallback: string): string {
+  if (typeof apiData !== "string" || !apiData) return fallback
+  if (!apiData.startsWith("http")) {
+    const last = apiData.split("/").filter(Boolean).pop()
+    return last || fallback
+  }
+  try {
+    const pathname = decodeURIComponent(new URL(apiData).pathname)
+    const lastSegment = pathname.split("/").filter(Boolean).pop()
+    return lastSegment || fallback
+  } catch {
+    return fallback
+  }
+}
+
 function CreateBlogContent() {
   const { logout } = useAdminAuth()
   const router = useRouter()
@@ -98,6 +119,9 @@ function CreateBlogContent() {
   const [showCreateAuthor, setShowCreateAuthor] = useState(false)
   const [newAuthor, setNewAuthor] = useState({ name: "", bio: "", avatar: "" })
   const [isCreatingAuthor, setIsCreatingAuthor] = useState(false)
+  // Separate preview URL for the new-author avatar (presigned, expires).
+  // newAuthor.avatar holds the plain filename that gets submitted to the API.
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("")
   
   // Categories state
   const [categories, setCategories] = useState<BlogCategory[]>([])
@@ -118,6 +142,9 @@ function CreateBlogContent() {
   })
 
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // Separate preview URL so we can show a blob URL immediately while the upload
+  // resolves, then replace with the real API URL once the upload completes.
+  const [imagePreviewUrl, setImagePreviewUrl] = useState<string>("")
 
   // Computed values for UI feedback
   const isBusy = isSubmitting || isUploading || isUploadingAvatar || isCreatingAuthor
@@ -181,7 +208,17 @@ function CreateBlogContent() {
       })
       const data = await response.json()
       if (data.status === 200 && Array.isArray(data.data)) {
-        setAuthors(data.data)
+        const adminToken = localStorage.getItem("admin_auth_token") || undefined
+        // Resolve avatar filenames → presigned URLs so they display in the Select dropdown
+        const resolved = await Promise.all(
+          data.data.map(async (author: BlogAuthor) => ({
+            ...author,
+            avatar: author.avatar
+              ? await resolveFileUrl(author.avatar, "FOLDER_TYPE_BLOG_AUTHOR_AVATAR", adminToken)
+              : undefined,
+          }))
+        )
+        setAuthors(resolved)
       }
     } catch (error) {
       console.error("Failed to fetch authors:", error)
@@ -238,13 +275,11 @@ function CreateBlogContent() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file")
       return
     }
 
-    // Validate file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error("Image size should be less than 5MB")
       return
@@ -254,43 +289,40 @@ function CreateBlogContent() {
     try {
       const token = localStorage.getItem("admin_auth_token")
       const uniqueFileName = `${Date.now()}-${file.name.replace(/\s+/g, "-")}`
+      const contentType = file.type || "image/png"
 
-      // Step 1: Get presigned URL from API
-      const presignedResponse = await fetch(
+      // Step 1: POST with no body to get a presigned S3 PUT URL
+      const presignRes = await fetch(
         `${EXTERNAL_API_BASE_URL}/api/storage/uploadGenericFile?folderName=${encodeURIComponent("FOLDER_TYPE_BLOG_ASSETS")}&fileName=${encodeURIComponent(uniqueFileName)}`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        }
+        { method: "POST", headers: { "Authorization": `Bearer ${token}` } }
       )
-      const presignedData = await presignedResponse.json()
+      const presignData = await presignRes.json()
+      console.log("[Blog Image] presigned URL response:", JSON.stringify(presignData))
 
-      if (presignedData.status !== 200 || !presignedData.data) {
-        toast.error(presignedData.message || "Failed to get upload URL")
+      if (presignData.status !== 200 || !presignData.data) {
+        toast.error(presignData.message || "Failed to get upload URL")
         return
       }
 
-      const presignedUrl = presignedData.data
-      const baseS3Url = presignedUrl.split("?")[0]
-
-      // Step 2: Upload file directly to S3
-      const fileBuffer = await file.arrayBuffer()
-      const uploadResponse = await fetch(presignedUrl, {
+      // Step 2: PUT file directly to S3 (no Authorization header on S3 requests)
+      const s3Res = await fetch(presignData.data, {
         method: "PUT",
-        headers: {
-          "Content-Type": file.type || "application/octet-stream",
-        },
-        body: fileBuffer,
+        headers: { "Content-Type": contentType },
+        body: file,
       })
 
-      if (!uploadResponse.ok) {
-        toast.error("Failed to upload file to storage")
+      if (!s3Res.ok) {
+        console.error("[Blog Image] S3 PUT failed:", s3Res.status, await s3Res.text().catch(() => ""))
+        toast.error("Failed to upload image to S3")
         return
       }
 
-      setFormData(prev => ({ ...prev, blogImage: baseS3Url }))
+      const storedKey = extractStoredKey(presignData.data, uniqueFileName)
+      console.log("[Blog Image] storedKey:", storedKey)
+
+      const presignedPreviewUrl = await resolveFileUrl(storedKey, "FOLDER_TYPE_BLOG_ASSETS", token || undefined)
+      setFormData(prev => ({ ...prev, blogImage: storedKey }))
+      setImagePreviewUrl(presignedPreviewUrl)
       toast.success("Image uploaded successfully")
     } catch (error) {
       console.error("Upload error:", error)
@@ -302,19 +334,18 @@ function CreateBlogContent() {
 
   const handleRemoveImage = () => {
     setFormData(prev => ({ ...prev, blogImage: "" }))
+    setImagePreviewUrl("")
   }
 
   const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validate file type
     if (!file.type.startsWith("image/")) {
       toast.error("Please upload an image file")
       return
     }
 
-    // Validate file size (max 2MB for avatars)
     if (file.size > 2 * 1024 * 1024) {
       toast.error("Avatar image should be less than 2MB")
       return
@@ -324,43 +355,40 @@ function CreateBlogContent() {
     try {
       const token = localStorage.getItem("admin_auth_token")
       const uniqueFileName = `avatar-${Date.now()}-${file.name.replace(/\s+/g, "-")}`
+      const contentType = file.type || "image/png"
 
-      // Step 1: Get presigned URL from API
-      const presignedResponse = await fetch(
+      // Step 1: POST with no body to get a presigned S3 PUT URL
+      const presignRes = await fetch(
         `${EXTERNAL_API_BASE_URL}/api/storage/uploadGenericFile?folderName=${encodeURIComponent("FOLDER_TYPE_BLOG_AUTHOR_AVATAR")}&fileName=${encodeURIComponent(uniqueFileName)}`,
-        {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${token}`,
-          },
-        }
+        { method: "POST", headers: { "Authorization": `Bearer ${token}` } }
       )
-      const presignedData = await presignedResponse.json()
+      const presignData = await presignRes.json()
+      console.log("[Blog Avatar] presigned URL response:", JSON.stringify(presignData))
 
-      if (presignedData.status !== 200 || !presignedData.data) {
-        toast.error(presignedData.message || "Failed to get upload URL")
+      if (presignData.status !== 200 || !presignData.data) {
+        toast.error(presignData.message || "Failed to get upload URL")
         return
       }
 
-      const presignedUrl = presignedData.data
-      const baseS3Url = presignedUrl.split("?")[0]
-
-      // Step 2: Upload file directly to S3
-      const fileBuffer = await file.arrayBuffer()
-      const uploadResponse = await fetch(presignedUrl, {
+      // Step 2: PUT file directly to S3 (no Authorization header on S3 requests)
+      const s3Res = await fetch(presignData.data, {
         method: "PUT",
-        headers: {
-          "Content-Type": file.type || "application/octet-stream",
-        },
-        body: fileBuffer,
+        headers: { "Content-Type": contentType },
+        body: file,
       })
 
-      if (!uploadResponse.ok) {
-        toast.error("Failed to upload avatar to storage")
+      if (!s3Res.ok) {
+        console.error("[Blog Avatar] S3 PUT failed:", s3Res.status, await s3Res.text().catch(() => ""))
+        toast.error("Failed to upload avatar to S3")
         return
       }
 
-      setNewAuthor(prev => ({ ...prev, avatar: baseS3Url }))
+      const storedKey = extractStoredKey(presignData.data, uniqueFileName)
+      console.log("[Blog Avatar] storedKey:", storedKey)
+
+      const presignedPreviewUrl = await resolveFileUrl(storedKey, "FOLDER_TYPE_BLOG_AUTHOR_AVATAR", token || undefined)
+      setNewAuthor(prev => ({ ...prev, avatar: storedKey }))
+      setAvatarPreviewUrl(presignedPreviewUrl)
       toast.success("Avatar uploaded successfully")
     } catch (error) {
       console.error("Avatar upload error:", error)
@@ -372,6 +400,7 @@ function CreateBlogContent() {
 
   const handleRemoveAvatar = () => {
     setNewAuthor(prev => ({ ...prev, avatar: "" }))
+    setAvatarPreviewUrl("")
   }
 
   const handleCreateAuthor = async () => {
@@ -403,6 +432,7 @@ function CreateBlogContent() {
         toast.success("Author created successfully")
         setShowCreateAuthor(false)
         setNewAuthor({ name: "", bio: "", avatar: "" })
+        setAvatarPreviewUrl("")
         await fetchAuthors()
         // Select the newly created author
         if (data.data?.id) {
@@ -466,30 +496,49 @@ function CreateBlogContent() {
         .map(tag => tag.trim())
         .filter(tag => tag.length > 0)
 
-      // Calculate reading time (approx words per minute)
-      const wordCount = formData.content.split(/\s+/).length
+      // Calculate reading time from plain-text word count
       const readingTime = Math.max(1, Math.ceil(wordCount / 200))
 
-      // Map to API field names
-      const blogData = {
-        title: formData.title,
-        slug: formData.slug,
-        subtitle: "", // Optional
-        excerpt: formData.description, // API uses 'excerpt' not 'description'
+      // Resolve the selected category — may be an existing ID or a new name string
+      const matchedCategory = categories.find(
+        (c) => c.name === formData.category || String(c.id) === formData.category
+      )
+
+      // Derive subtitle — backend requires non-blank.
+      // Use the first sentence of the excerpt, or the full excerpt, or the title as last resort.
+      const excerptText = formData.description.trim()
+      const firstSentence = excerptText.split(/[.!?]/)[0].trim()
+      const subtitle = firstSentence || excerptText || formData.title.trim()
+
+      // Build payload to match BlogCreateModel exactly (all required fields from OpenAPI schema).
+      // Required: category, content, excerpt, featured, featuredImage, featuredImageAlt,
+      //           metaDescription, metaKeywordList, metaTitle, slug, status, subtitle,
+      //           tagList, thumbnailImage, title
+      const blogData: Record<string, unknown> = {
+        title: formData.title.trim(),
+        slug: formData.slug.trim(),
+        subtitle,
         content: formData.content,
-        featuredImage: formData.blogImage, // API uses 'featuredImage' not 'blogImage'
-        featuredImageAlt: formData.title, // Alt text for image
-        category: formData.category,
-        tagList: tagsArray.length > 0 ? tagsArray : undefined, // API uses 'tagList' not 'tags'
-        authorId: formData.authorId ? parseInt(formData.authorId) : undefined,
-        status: "PUBLISHED", // DRAFT, PUBLISHED, or ARCHIVED
+        excerpt: excerptText,
+        featuredImage: formData.blogImage,
+        featuredImageAlt: formData.title.trim(),
+        // thumbnailImage is required — reuse featured image (no separate upload in this form)
+        thumbnailImage: formData.blogImage,
+        category: matchedCategory ? matchedCategory.name : formData.category,
+        // tagList and metaKeywordList are REQUIRED fields — send empty arrays when no tags
+        tagList: tagsArray,
+        metaKeywordList: tagsArray,
+        status: "PUBLISHED",
         featured: false,
-        readingTime: readingTime,
-        metaTitle: formData.title,
-        metaDescription: formData.description,
+        readingTime,
+        metaTitle: formData.title.trim(),
+        metaDescription: excerptText,
       }
 
-      console.log("Publishing blog:", blogData)
+      // authorId is optional — only include when user selected one
+      if (formData.authorId) blogData.authorId = parseInt(formData.authorId)
+
+      console.log("Publishing blog payload:", JSON.stringify(blogData, null, 2))
 
       const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/blogs/createBlog`, {
         method: "POST",
@@ -500,13 +549,29 @@ function CreateBlogContent() {
         body: JSON.stringify(blogData),
       })
 
-      const data = await response.json()
+      // Read as text first so we always have the raw body for debugging,
+      // even when the API returns a non-JSON or empty error response.
+      const rawBody = await response.text()
+      let data: Record<string, unknown> = {}
+      try {
+        data = rawBody ? JSON.parse(rawBody) : {}
+      } catch {
+        console.error("createBlog — non-JSON response body:", rawBody.slice(0, 500))
+      }
+
+      console.log("createBlog response — HTTP", response.status, data)
       
-      if (data.status === 200) {
+      if (data.status === 200 || response.ok) {
         toast.success("Blog published successfully!")
         router.push("/admin")
       } else {
-        toast.error(data.message || "Failed to publish blog")
+        const apiError =
+          (data.message as string) ||
+          (data.error as string) ||
+          rawBody.slice(0, 200) ||
+          `HTTP ${response.status}`
+        toast.error(`Failed to publish blog: ${apiError}`)
+        console.error("createBlog error — HTTP", response.status, "body:", rawBody.slice(0, 500))
       }
     } catch (error) {
       console.error("Publish error:", error)
@@ -887,7 +952,7 @@ function CreateBlogContent() {
                 {formData.blogImage ? (
                   <div className="relative rounded-lg overflow-hidden border border-border group">
                     <img
-                      src={formData.blogImage}
+                      src={imagePreviewUrl || formData.blogImage}
                       alt="Featured image preview"
                       className="w-full h-64 object-cover transition-transform group-hover:scale-105"
                     />
@@ -1086,7 +1151,7 @@ function CreateBlogContent() {
                           {newAuthor.avatar ? (
                             <div className="relative w-24 h-24 rounded-full overflow-hidden border border-border">
                               <img
-                                src={newAuthor.avatar}
+                                src={avatarPreviewUrl || newAuthor.avatar}
                                 alt="Author avatar"
                                 className="w-full h-full object-cover"
                               />

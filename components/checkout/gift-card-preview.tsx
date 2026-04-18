@@ -37,11 +37,7 @@ export default function GiftCardPreview({ card, showBuyButton = false, logoUrl, 
         {/* Logo Background Card */}
         <div className={`relative ${card.bgColor} p-10 flex items-center justify-center min-h-[220px] overflow-hidden rounded-t-xl`}>
           {/* Discount Sticker */}
-          {showDiscount && (
-            <div className="absolute bottom-3 left-3 bg-teal-500 text-white px-2.5 py-1 rounded-full text-xs font-bold z-10">
-              {card.discount}% OFF
-            </div>
-          )}
+          {/* Discount display removed per business rules */}
 
           {/* Logo - Image or Emoji */}
           {logoUrl ? (

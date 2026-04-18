@@ -63,6 +63,10 @@ export default function Header() {
       label: "Buy Gift Cards",
       href: "/buy",
     },
+    {
+      label: "Blog",
+      href: "/blog",
+    },
   ]
 
   // Get user display name

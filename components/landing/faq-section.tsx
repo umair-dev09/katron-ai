@@ -68,19 +68,38 @@ export default function FAQSection() {
     setOpenId(openId === id ? null : id)
   }
 
+  // Generate FAQ schema JSON-LD
+  const faqSchemaJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  }
+
   return (
-    <section
-      ref={sectionRef}
-      className="relative bg-[#F3F4F6] py-16 md:py-24 lg:py-32 overflow-hidden"
-    >
+    <>
+      {/* FAQ Schema.org structured data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqSchemaJsonLd) }}
+      />
+      <section
+        ref={sectionRef}
+        className="relative bg-[#F3F4F6] py-16 md:py-24 lg:py-32 overflow-hidden"
+      >
       <div className="container mx-auto px-8 sm:px-12 md:px-16 lg:px-24 max-w-7xl">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 lg:gap-20">
 
           {/* ── Left: label + heading + link ── */}
           <div
-            className={`lg:col-span-2 flex flex-col justify-start transition-all duration-1000 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-            }`}
+            className={`lg:col-span-2 flex flex-col justify-start transition-all duration-1000 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
           >
             <p className="text-sm font-semibold text-gray-500 uppercase tracking-widest mb-4">
               Our FAQs
@@ -91,20 +110,13 @@ export default function FAQSection() {
             >
               FREQUENTLY ASKED QUESTIONS
             </h2>
-            <a
-              href="#"
-              className="inline-flex items-center gap-2 text-base font-semibold text-gray-700 hover:gap-3 transition-all duration-200 group"
-            >
-              Know More
-              <span className="transition-transform duration-200 group-hover:translate-x-1">→</span>
-            </a>
+
           </div>
 
           {/* ── Right: accordion ── */}
           <div
-            className={`lg:col-span-3 transition-all duration-1000 delay-200 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
-            }`}
+            className={`lg:col-span-3 transition-all duration-1000 delay-200 ${isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-10"
+              }`}
           >
             {faqs.map((faq) => (
               <div key={faq.id} className="border-t border-gray-400">
@@ -121,9 +133,8 @@ export default function FAQSection() {
                 </button>
 
                 <div
-                  className={`overflow-hidden transition-all duration-300 ${
-                    openId === faq.id ? "max-h-96 pb-6" : "max-h-0"
-                  }`}
+                  className={`overflow-hidden transition-all duration-300 ${openId === faq.id ? "max-h-96 pb-6" : "max-h-0"
+                    }`}
                 >
                   <div className="text-base text-gray-600 leading-relaxed whitespace-pre-line">
                     {faq.answer}
@@ -136,6 +147,7 @@ export default function FAQSection() {
 
         </div>
       </div>
-    </section>
+      </section>
+    </>
   )
 }

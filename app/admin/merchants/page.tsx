@@ -179,17 +179,18 @@ function MerchantsPageContent() {
         },
       })
       const data = await response.json()
+      console.log("[Admin Merchants] activateOrDeactivate response:", data)
       
-      if (data.status === 200) {
+      if (response.ok || data.status === 200) {
         toast({
           title: "Success",
-          description: `Merchant ${activate ? "activated" : "deactivated"} successfully`,
+          description: `Merchant API profile ${activate ? "activated" : "deactivated"} successfully`,
         })
         fetchMerchants() // Refresh the list
       } else {
         toast({
           title: "Error",
-          description: data.message || "Failed to update merchant status",
+          description: data.message || "Failed to update merchant API profile status",
           variant: "destructive",
         })
       }
@@ -553,7 +554,7 @@ function MerchantsPageContent() {
                               size="sm"
                               onClick={() => handleToggleStatus(merchant, true)}
                               disabled={isToggling === merchant.id}
-                              title="Activate"
+                              title="Activate API Profile"
                             >
                               {isToggling === merchant.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -566,7 +567,7 @@ function MerchantsPageContent() {
                               size="sm"
                               onClick={() => handleToggleStatus(merchant, false)}
                               disabled={isToggling === merchant.id}
-                              title="Deactivate"
+                              title="Deactivate API Profile"
                             >
                               {isToggling === merchant.id ? (
                                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -690,22 +691,26 @@ function MerchantsPageContent() {
                           >
                             <RefreshCw className="h-3.5 w-3.5" />
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openOrderActionDialog(order, "refund")}
-                            title="Refund"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => openOrderActionDialog(order, "void")}
-                            title="Void"
-                          >
-                            <XCircle className="h-3.5 w-3.5" />
-                          </Button>
+                          {["SUCCESS", "SUCCESSFUL", "COMPLETED", "PAYMENT_COMPLETED", "PAID"].includes((order.status || "").toUpperCase()) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openOrderActionDialog(order, "refund")}
+                              title="Refund"
+                            >
+                              <RotateCcw className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
+                          {["SUCCESS", "SUCCESSFUL", "COMPLETED", "PAYMENT_COMPLETED", "PAID"].includes((order.status || "").toUpperCase()) && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => openOrderActionDialog(order, "void")}
+                              title="Void"
+                            >
+                              <XCircle className="h-3.5 w-3.5" />
+                            </Button>
+                          )}
                         </div>
                       </TableCell>
                     </TableRow>

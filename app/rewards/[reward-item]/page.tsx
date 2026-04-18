@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Image from "next/image"
 import { notFound } from "next/navigation"
 import RewardItemHero from "@/components/rewards/reward-item-hero"
@@ -35,6 +36,34 @@ export function generateStaticParams() {
   return Object.keys(brandData).map((slug) => ({
     "reward-item": slug,
   }))
+}
+
+// Dynamic SEO metadata per brand
+export async function generateMetadata({ params }: { params: Promise<{ "reward-item": string }> }): Promise<Metadata> {
+  const resolvedParams = await params
+  const slug = resolvedParams["reward-item"]
+  const brand = brandData[slug]
+
+  if (!brand) {
+    return { title: "Gift Card Not Found" }
+  }
+
+  const title = `Buy ${brand.name} Gift Cards Instantly | Katron AI`
+  const description = `Buy ${brand.name} digital gift cards online with instant delivery. Earn rewards on every purchase with Katron AI's secure gift card marketplace.`
+  const url = `https://katronai.com/rewards/${slug}`
+
+  return {
+    title,
+    description,
+    alternates: { canonical: url },
+    openGraph: {
+      title,
+      description,
+      url,
+      type: "website",
+      images: [{ url: `https://katronai.com${brand.image}`, alt: `${brand.name} Gift Card` }],
+    },
+  }
 }
 
 export default async function RewardItemPage({ params }: { params: Promise<{ "reward-item": string }> }) {

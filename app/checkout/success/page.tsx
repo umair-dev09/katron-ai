@@ -14,7 +14,7 @@ function CheckoutSuccessContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const orderId = searchParams.get("orderId")
-  
+
   const [isLoading, setIsLoading] = useState(true)
   const [order, setOrder] = useState<GiftCardOrder | null>(null)
 
@@ -58,7 +58,7 @@ function CheckoutSuccessContent() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="max-w-2xl mx-auto px-4 py-16">
+      <div className="max-w-2xl mx-auto px-4 pt-32 pb-16 md:pt-40">
         {/* Success Header */}
         <div className="relative text-center mb-8">
           {/* Confetti Animation */}
@@ -85,7 +85,7 @@ function CheckoutSuccessContent() {
         {/* Order Details Card */}
         <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-6 mb-6 space-y-4">
           <h2 className="text-lg font-bold text-foreground">Order Details</h2>
-          
+
           <div className="space-y-3 text-sm">
             {order?.orderId && (
               <div className="flex justify-between py-2 border-b border-gray-100 dark:border-gray-800">
@@ -124,7 +124,7 @@ function CheckoutSuccessContent() {
         {(order?.giftCardCode || order?.giftCardPin) && (
           <div className="bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 rounded-xl p-6 mb-6 space-y-4">
             <h2 className="text-lg font-bold text-foreground">Gift Card Details</h2>
-            
+
             {order.giftCardCode && (
               <div className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-lg p-4">
                 <div>
@@ -141,7 +141,7 @@ function CheckoutSuccessContent() {
                 </Button>
               </div>
             )}
-            
+
             {order.giftCardPin && (
               <div className="flex items-center justify-between bg-white dark:bg-gray-900 rounded-lg p-4">
                 <div>
@@ -169,7 +169,7 @@ function CheckoutSuccessContent() {
               Email sent successfully
             </p>
             <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-              The gift card details have been sent to the recipient&apos;s email address. 
+              The gift card details have been sent to the recipient&apos;s email address.
               They should receive it within a few minutes.
             </p>
           </div>

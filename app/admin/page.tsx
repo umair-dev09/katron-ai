@@ -6,7 +6,7 @@ import { useAdminAuth } from "@/lib/admin-auth-context"
 import { getDashboardStats, type DashboardStats } from "@/lib/api/admin"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, LogOut, User, FileText, Store, Users, ArrowRight, Loader2, PenTool, ShoppingCart } from "lucide-react"
+import { Shield, LogOut, User, FileText, Store, Users, ArrowRight, Loader2, PenTool, ShoppingCart, Key, DollarSign, UserCog } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -177,6 +177,27 @@ function AdminDashboardContent() {
 
         {/* Navigation Buttons */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Link href="/admin/manage-blogs" className="block">
+            <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group h-full">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <span>Manage Blogs</span>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  View, edit, and orchestrate all blog posts
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
           <Link href="/admin/create-blog" className="block">
             <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
               <CardHeader>
@@ -256,6 +277,69 @@ function AdminDashboardContent() {
               <CardContent>
                 <p className="text-sm text-muted-foreground">
                   View and manage all gift card orders
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/fees" className="block">
+            <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <DollarSign className="h-5 w-5 text-primary" />
+                    </div>
+                    <span>Fee Structure</span>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Configure processing fees for all account types
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/merchant-api-profiles" className="block">
+            <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <Key className="h-5 w-5 text-primary" />
+                    </div>
+                    <span>API Profiles</span>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Manage merchant API profiles, balance, and orders
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link href="/admin/profile" className="block">
+            <Card className="hover:border-primary/50 hover:shadow-md transition-all cursor-pointer group">
+              <CardHeader>
+                <CardTitle className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-lg bg-primary/10">
+                      <UserCog className="h-5 w-5 text-primary" />
+                    </div>
+                    <span>Admin Profile</span>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  View profile, change password, and create admin accounts
                 </p>
               </CardContent>
             </Card>

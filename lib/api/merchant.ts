@@ -112,3 +112,40 @@ export async function getMerchantFeePreference(): Promise<ApiResponse<FeePrefere
   })
   return handleResponse<FeePreference>(response)
 }
+
+// Merchant Order Types
+export interface MerchantOrder {
+  id: number
+  giftCardOrderId?: number
+  productName?: string
+  brandName?: string
+  amount?: number
+  unitPrice?: number
+  totalAmount?: number
+  fee?: number
+  status?: string
+  paymentStatus?: string
+  orderStatus?: string
+  createdAt?: string
+  customerEmail?: string
+  recipientEmail?: string
+  recipientName?: string
+  email?: string
+  cardNumber?: string
+  cardPin?: string
+  giftCardCode?: string
+  giftCardPin?: string
+  productId?: number
+  senderName?: string
+}
+
+/**
+ * List all gift card orders for the merchant API profile
+ */
+export async function listMerchantGiftCardOrders(): Promise<ApiResponse<MerchantOrder[]>> {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/merchant/giftCard/listAllGiftCardOrders`, {
+    method: "GET",
+    headers: getAuthHeaders(),
+  })
+  return handleResponse<MerchantOrder[]>(response)
+}

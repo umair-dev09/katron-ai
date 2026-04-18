@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import NewHeroSection from "@/components/landing/new-hero-section"
 import ProductsSection from "@/components/landing/products-section"
 import SpotlightSection from "@/components/landing/spotlight-section"
@@ -9,6 +10,22 @@ import DeveloperResourcesSection from "@/components/landing/developer-resources-
 import FAQSection from "@/components/landing/faq-section"
 import SliderSection from "@/components/landing/slider-section"
 import ArcCarouselSection from "@/components/landing/arc-carousel-section"
+
+export const metadata: Metadata = {
+  title: "Katron AI | Instant Digital Rewards + Digital Gift Cards for Everyday Spending",
+  description:
+    "Earn instant digital rewards when you shop and access digital gift cards from top brands. Katron AI connects everyday transactions with rewards—simple, fast, and secure.",
+  alternates: {
+    canonical: "https://katronai.com",
+  },
+  openGraph: {
+    title: "Katron AI | Instant Digital Rewards + Digital Gift Cards for Everyday Spending",
+    description:
+      "Earn instant digital rewards when you shop and access digital gift cards from top brands. Katron AI connects everyday transactions with rewards—simple, fast, and secure.",
+    url: "https://katronai.com",
+    type: "website",
+  },
+}
 
 export default function HomePage() {
   return (
@@ -29,4 +46,3 @@ export default function HomePage() {
     </main>
   )
 }
- 

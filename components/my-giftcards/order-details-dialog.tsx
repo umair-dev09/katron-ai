@@ -26,6 +26,7 @@ import {
   hasGiftCardCredentials,
   getGiftCardCredentials,
   resendGiftCardCredentials,
+  normalizeOrder,
 } from "@/lib/api/orders"
 
 interface OrderDetailsDialogProps {
@@ -46,8 +47,9 @@ export default function OrderDetailsDialog({ isOpen, onClose, order, onRefreshOr
 
   if (!order) return null
 
-  const normalizedStatus = normalizeStatus(order.status || order.orderStatus)
-  const normalizedPaymentStatus = normalizePaymentStatus(order.paymentStatus)
+  const normalizedOrder = normalizeOrder(order)
+  const normalizedStatus = normalizedOrder.status as string
+  const normalizedPaymentStatus = normalizedOrder.paymentStatus as string
   const credentials = getGiftCardCredentials(order)
   const hasCredentials = hasGiftCardCredentials(order)
   const logoUrl = getOrderLogoUrl(order)

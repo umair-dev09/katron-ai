@@ -17,6 +17,7 @@ import {
   getOrderLogoUrl,
   normalizeStatus,
   normalizePaymentStatus,
+  normalizeOrder,
   checkOrderStatus,
 } from "@/lib/api/orders"
 
@@ -31,8 +32,10 @@ export default function PurchasedGiftCardItem({ card, onOrderUpdated }: Purchase
   const [imageError, setImageError] = useState(false)
   const router = useRouter()
 
-  const normalizedStatus = normalizeStatus(card.status || card.orderStatus)
-  const normalizedPaymentStatus = normalizePaymentStatus(card.paymentStatus)
+  // Get fully normalized statuses using centralized logic
+  const normalizedCard = normalizeOrder(card)
+  const normalizedStatus = normalizedCard.status as string
+  const normalizedPaymentStatus = normalizedCard.paymentStatus as string
   const logoUrl = getOrderLogoUrl(card)
   // Use productName first (from API), then brandName as fallback
   const cardName = card.productName || card.brandName || "Gift Card"
@@ -94,41 +97,31 @@ export default function PurchasedGiftCardItem({ card, onOrderUpdated }: Purchase
           return (
             <Button
               onClick={handleCompletePayment}
-              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 rounded-lg transition-all"
+              className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 px-2 text-xs xl:text-sm rounded-lg transition-all"
             >
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Complete Payment
+              <ExternalLink className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+              <span className="truncate">Pay Now</span>
             </Button>
           )
         }
         return (
           <Button
-            onClick={handleRefreshStatus}
-            disabled={isRefreshing}
-            className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-2 rounded-lg transition-all"
+            onClick={handlePurchaseAgain}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-2 text-xs xl:text-sm rounded-lg transition-all"
           >
-            {isRefreshing ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4 mr-2" />
-            )}
-            Check Status
+            <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+            <span className="truncate">Buy Again</span>
           </Button>
         )
       
       case "PROCESSING":
         return (
           <Button
-            onClick={handleRefreshStatus}
-            disabled={isRefreshing}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg transition-all"
+            onClick={handlePurchaseAgain}
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-2 text-xs xl:text-sm rounded-lg transition-all"
           >
-            {isRefreshing ? (
-              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
-            ) : (
-              <RefreshCw className="w-4 h-4 mr-2" />
-            )}
-            Refresh Status
+            <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+            <span className="truncate">Buy Again</span>
           </Button>
         )
       
@@ -136,10 +129,10 @@ export default function PurchasedGiftCardItem({ card, onOrderUpdated }: Purchase
         return (
           <Button
             onClick={handlePurchaseAgain}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 rounded-lg transition-all"
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-2 text-xs xl:text-sm rounded-lg transition-all"
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Purchase Again
+            <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+            <span className="truncate">Buy Again</span>
           </Button>
         )
       
@@ -149,10 +142,10 @@ export default function PurchasedGiftCardItem({ card, onOrderUpdated }: Purchase
           <Button
             onClick={handlePurchaseAgain}
             variant="outline"
-            className="flex-1 font-semibold py-2 rounded-lg transition-all"
+            className="flex-1 font-semibold py-2 px-2 text-xs xl:text-sm rounded-lg transition-all"
           >
-            <ShoppingCart className="w-4 h-4 mr-2" />
-            Try Again
+            <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+            <span className="truncate">Try Again</span>
           </Button>
         )
       
@@ -160,9 +153,10 @@ export default function PurchasedGiftCardItem({ card, onOrderUpdated }: Purchase
         return (
           <Button
             onClick={handlePurchaseAgain}
-            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 rounded-lg transition-all"
+            className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 px-2 text-xs xl:text-sm rounded-lg transition-all"
           >
-            Purchase Again
+            <ShoppingCart className="w-3.5 h-3.5 md:w-4 md:h-4 mr-1 md:mr-2 shrink-0" />
+            <span className="truncate">Buy Again</span>
           </Button>
         )
     }
@@ -174,8 +168,8 @@ export default function PurchasedGiftCardItem({ card, onOrderUpdated }: Purchase
         {/* Logo Background Card - Colored background always visible, bg-slate-600 as fallback */}
         <div className={`relative bg-slate-600 ${bgColor} p-8 flex items-center justify-center min-h-[200px] overflow-hidden rounded-t-xl`}>
           {/* Status Badge */}
-          <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold capitalize z-10 ${getStatusColor(card.status)}`}>
-            {getStatusLabel(card.status)}
+          <div className={`absolute top-3 left-3 px-2.5 py-1 rounded-full text-xs font-semibold capitalize z-10 ${getStatusColor(normalizedStatus)}`}>
+            {getStatusLabel(normalizedStatus)}
           </div>
 
           {/* Logo/Image - sized to always show colored background around it */}
@@ -221,10 +215,27 @@ export default function PurchasedGiftCardItem({ card, onOrderUpdated }: Purchase
           <div className="flex gap-2">
             {renderActionButton()}
             <Button
-              onClick={() => setShowDetails(true)}
+              onClick={(e) => {
+                e.stopPropagation()
+                handleRefreshStatus()
+              }}
+              disabled={isRefreshing}
               variant="outline"
               size="icon"
-              className="border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20"
+              title="Refresh Status"
+              className="border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 shrink-0"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`} />
+            </Button>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowDetails(true)
+              }}
+              variant="outline"
+              size="icon"
+              title="View Details"
+              className="border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900/20 shrink-0"
             >
               <Info className="w-4 h-4" />
             </Button>

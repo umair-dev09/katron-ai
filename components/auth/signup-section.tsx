@@ -30,6 +30,7 @@ export function SignupSection({ userType, onToggleMode, onNeedsVerification, onS
     lastName: "",
     email: "",
     phone: "",
+    address: "",
     password: "",
     confirmPassword: "",
   })
@@ -60,11 +61,9 @@ export function SignupSection({ userType, onToggleMode, onNeedsVerification, onS
       newErrors.email = "Please enter a valid email address"
     }
 
-    // Phone validation (min 9 characters as per API)
+    // Phone validation (optional, but if provided must be at least 9 digits)
     const phoneClean = formData.phone.replace(/\D/g, "")
-    if (!formData.phone.trim()) {
-      newErrors.phone = "Phone number is required"
-    } else if (phoneClean.length < 9) {
+    if (formData.phone.trim() && phoneClean.length < 9) {
       newErrors.phone = "Phone number must be at least 9 digits"
     }
 
@@ -117,11 +116,11 @@ export function SignupSection({ userType, onToggleMode, onNeedsVerification, onS
         lastname: formData.lastName.trim(),
         email: formData.email.trim().toLowerCase(),
         password: formData.password,
-        phone: formData.phone.replace(/\D/g, ""), // Remove non-digits
+        phone: formData.phone.trim() ? formData.phone.replace(/\D/g, "") : "000000000", // Send placeholder if empty
         accountType: userType.toUpperCase() as "MERCHANT" | "USER",
         address: {
-          addressLine1: "Not provided", // Default address as it's required by API
-          country: "US", // Default country code
+          addressLine1: formData.address.trim() || "Not provided",
+          country: "US",
         },
       }
 
@@ -250,7 +249,7 @@ export function SignupSection({ userType, onToggleMode, onNeedsVerification, onS
 
       <div className="space-y-2">
         <Label htmlFor="phone" className="text-sm font-medium">
-          Phone Number
+          Phone Number <span className="text-muted-foreground font-normal">(Optional)</span>
         </Label>
         <Input
           id="phone"
@@ -264,6 +263,21 @@ export function SignupSection({ userType, onToggleMode, onNeedsVerification, onS
         {errors.phone && (
           <p className="text-xs text-red-500">{errors.phone}</p>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="address" className="text-sm font-medium">
+          Address <span className="text-muted-foreground font-normal">(Optional)</span>
+        </Label>
+        <Input
+          id="address"
+          type="text"
+          placeholder="123 Main St, City, State"
+          value={formData.address}
+          onChange={handleInputChange}
+          disabled={loading}
+          className={`h-10 md:h-11 text-sm md:text-base border border-border focus:border-primary focus:outline-none transition-colors duration-200`}
+        />
       </div>
 
       <div className="space-y-2">

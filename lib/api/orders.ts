@@ -186,7 +186,7 @@ export async function getOrders(): Promise<ApiResponse<GiftCardOrder[]>> {
  * Get a single order by ID
  */
 export async function getOrderById(orderId: number | string): Promise<ApiResponse<GiftCardOrder>> {
-  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkForPaymentAndGiftCardStatus?giftCardOrderId=${orderId}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/refreshGiftCardOrder?giftCardOrderId=${orderId}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -198,7 +198,7 @@ export async function getOrderById(orderId: number | string): Promise<ApiRespons
  * Check order status and update
  */
 export async function checkOrderStatus(orderId: number | string): Promise<ApiResponse<GiftCardOrder>> {
-  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/checkForPaymentAndGiftCardStatus?giftCardOrderId=${orderId}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/refreshGiftCardOrder?giftCardOrderId=${orderId}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -210,7 +210,7 @@ export async function checkOrderStatus(orderId: number | string): Promise<ApiRes
  * Resend gift card credentials to recipient email
  */
 export async function resendGiftCardCredentials(orderId: number | string): Promise<ApiResponse<ResendCredentialsResponse>> {
-  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/external/giftCard/resendGiftCardCredentials?giftCardOrderId=${orderId}`, {
+  const response = await fetch(`${EXTERNAL_API_BASE_URL}/api/giftCards/resendGiftCardCredentials?giftCardOrderId=${orderId}`, {
     method: "POST",
     headers: getAuthHeaders(),
   })
@@ -245,7 +245,21 @@ export function normalizeOrder(order: GiftCardOrder): GiftCardOrder {
     recipientName: order.recipientName || order.name || "",
     
     // Normalize status
-    status: normalizeStatus(order.status || order.orderStatus || "PENDING"),
+    status: (() => {
+      const parsedStatus = normalizeStatus(order.status || order.orderStatus || "PENDING");
+      const parsedPaymentStatus = normalizePaymentStatus(order.paymentStatus || "PENDING");
+      
+      // If we have actual gift card credentials or the API reports payment as PAID, 
+      // the gift card has been issued
+      if (
+        parsedPaymentStatus === "PAID" || 
+        !!(order.giftCardCode || order.cardNumber || order.giftCardPin || order.pinCode) ||
+        (order.giftCardStatus && ["SUCCESS", "COMPLETED", "DELIVERED"].includes(order.giftCardStatus.toUpperCase()))
+      ) {
+        return "COMPLETED";
+      }
+      return parsedStatus;
+    })(),
     paymentStatus: normalizePaymentStatus(order.paymentStatus || "PENDING"),
     
     // Normalize dates
@@ -264,16 +278,18 @@ export function normalizeStatus(status?: string): OrderStatus {
   switch (upperStatus) {
     case "COMPLETED":
     case "SUCCESS":
+    case "SUCCESSFUL":
     case "DELIVERED":
     case "GIFT_CARD_DELIVERED":
+    case "PAYMENT_COMPLETED":
       return "COMPLETED"
     case "PENDING":
-    case "PAYMENT_PENDING":
     case "AWAITING_PAYMENT":
       return "PENDING"
     case "PROCESSING":
     case "IN_PROGRESS":
     case "GIFT_CARD_PENDING":
+    case "PAYMENT_PENDING":
       return "PROCESSING"
     case "FAILED":
     case "ERROR":

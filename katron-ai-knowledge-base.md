@@ -244,27 +244,17 @@ Content-Type: application/json
 
 **Security rules:**
 - Keep your API key secret — never share it in public repositories or client-side code
-- If your key is compromised, regenerate it immediately from your API Profile page or by calling the reissue token endpoint
-- Reissuing a token **immediately invalidates** the current one — update all integrations promptly
+- If your key is compromised, regenerate it immediately from your API Profile page
+- Regenerating a token **immediately invalidates** the current one — update all integrations promptly
 
 ---
 
-### 6.3 Quick Start (3 Steps)
+### 6.3 Quick Start (2 Steps)
 
-**Step 1 — Create Your Merchant API Profile**  
-Register as a MERCHANT user on KTN Gift Card, navigate to `/merchant-api` (API Profile), or call:
+**Step 1 — Retrieve Your API Key**  
+Register as a MERCHANT user on KTN Gift Card, navigate to `/merchant-api` (API Profile) to create your Merchant API profile. After profile creation, your API key (Bearer token) is sent to your registered email. Check spam/junk if you don't receive it. You can regenerate it at any time from the API Profile page.
 
-```
-POST /api/user/createMerchantApiProfile?type=CHARGE_CARD
-Authorization: Bearer YOUR_USER_JWT_TOKEN
-```
-
-Query parameter: `type` (required) — `CHARGE_CARD` or `CHARGE_ACCOUNT_BALANCE`
-
-**Step 2 — Retrieve Your API Key**  
-After profile creation, your API key (Bearer token) is sent to your registered email. Check spam/junk if you don't receive it. You can regenerate it at any time using the reissue token endpoint.
-
-**Step 3 — Make Your First Request**  
+**Step 2 — Make Your First Request**  
 ```bash
 curl -X GET \
   "https://api.ktngiftcard.katronai.com/katron-gift-card/api/merchant/giftCard/listGiftCards" \
@@ -302,15 +292,6 @@ Authorization: Bearer YOUR_MERCHANT_API_KEY
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `type` | string | Yes | New charge type. Enum: `CHARGE_CARD` \| `CHARGE_ACCOUNT_BALANCE` |
-
----
-
-#### POST — Reissue API Token
-```
-POST /api/merchant/reissueTokenForMerchantApiProfile
-Authorization: Bearer YOUR_MERCHANT_API_KEY
-```
-Regenerates your API key. The **current key is immediately invalidated** and a new one is sent to your registered email. All applications using the old key will receive authentication errors until updated.
 
 ---
 
@@ -599,8 +580,8 @@ interface MerchantApiProfileGiftCardOrderRequest {
 | Section | Endpoints |
 |---|---|
 | **Introduction** | Overview, Base URL, Authentication |
-| **Quick Start** | Create Profile, Get API Key, First Request |
-| **Account** | Get Account Details, Update Charge Type, Reissue API Token, Fee Preference |
+| **Quick Start** | Get API Key, First Request |
+| **Account** | Get Account Details, Update Charge Type, Fee Preference |
 | **Gift Cards** | List Gift Cards, Purchase Gift Card |
 | **Orders** | List All Orders, Get Credentials, Resend Credentials, Refresh Order, Refund Payment, Void Payment |
 | **Schemas** | Response Object, Purchase Request, ChargeType Enum |
@@ -615,7 +596,7 @@ Katron AI has multiple user account types:
 | Account Type | Description |
 |---|---|
 | **USER** | Regular consumer account. Can browse and purchase closed-loop gift cards, earn KTN-R rewards via the app, view transaction history. |
-| **MERCHANT** | Business account. Can access the Merchant App, manage products/discounts/terminals, create a Merchant API profile, access both open-loop and closed-loop gift cards. |
+| **MERCHANT** | Business account. Can access the Merchant App, manage products/discounts/terminals, access both open-loop and closed-loop gift cards, and use the Merchant API for programmatic gift card purchasing. |
 
 
 ---
@@ -794,20 +775,18 @@ Articles are accessible via the blog section of the website.
 
 Three highlighted developer resource cards are displayed on the landing page, all pointing to `/api-docs`:
 
-1. **Quick Start Guide** (`/api-docs#create-profile`) — Step-by-step walkthrough: create your API profile, retrieve your API key, and make your first gift card purchase. Includes ready-to-use `curl` code examples.
+1. **Quick Start Guide** (`/api-docs#get-api-key`) — Step-by-step walkthrough: retrieve your API key and make your first gift card purchase. Includes ready-to-use `curl` code examples.
 
 2. **API Reference** (`/api-docs#gift-cards`) — Full Merchant API reference: list gift cards, purchase them programmatically, manage orders, retrieve credentials, handle refunds and voids. Covers all request/response schemas and endpoint details.
 
-3. **Authentication & Security** (`/api-docs#authentication`) — How Bearer token authentication works with the KTN API. How to create your Merchant API profile, secure your API key, configure your charge type, and manage token lifecycle including reissuance.
+3. **Authentication & Security** (`/api-docs#authentication`) — How Bearer token authentication works with the KTN API. How to secure your API key, configure your charge type, and manage your account.
 
 **Full API endpoint list** (see Section 6 for complete details):
 
 | Method | Endpoint | Purpose |
 |---|---|---|
-| POST | `/api/user/createMerchantApiProfile?type={type}` | Create a Merchant API profile |
 | GET | `/api/merchant/getAccountDetails` | Get account details |
 | POST | `/api/merchant/giftCard/updateMerchantApiProfileGiftCardChargeType?type={type}` | Update charge type |
-| POST | `/api/merchant/reissueTokenForMerchantApiProfile` | Reissue/regenerate API token |
 | GET | `/api/merchant/giftCard/getActiveFeePreference` | Get fee schedule |
 | GET | `/api/merchant/giftCard/listGiftCards` | List all available gift cards |
 | POST | `/api/merchant/giftCard/purchaseGiftCard` | Purchase a gift card |

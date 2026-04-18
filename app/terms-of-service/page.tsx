@@ -1,4 +1,14 @@
+import type { Metadata } from "next"
 import Footer from "@/components/footer"
+
+export const metadata: Metadata = {
+  title: "Terms of Service",
+  description:
+    "Read the Katron AI Terms of Service. Understand your rights and obligations when using the Katron AI platform, gift card marketplace, and rewards program.",
+  alternates: {
+    canonical: "https://katronai.com/terms-of-service",
+  },
+}
 
 export default function TermsOfServicePage() {
   return (

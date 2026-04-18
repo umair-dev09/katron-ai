@@ -236,15 +236,21 @@ export function sortGiftCards(cards: GiftCard[], sortBy: SortOption): GiftCard[]
       return sorted.sort((a, b) => (b.discountPercentage || 0) - (a.discountPercentage || 0))
     case "price-low":
       return sorted.sort((a, b) => {
-        const aMin = getPriceRange(a).min
-        const bMin = getPriceRange(b).min
-        return aMin - bMin
+        const aRange = getPriceRange(a)
+        const bRange = getPriceRange(b)
+        if (aRange.min !== bRange.min) {
+          return aRange.min - bRange.min
+        }
+        return aRange.max - bRange.max
       })
     case "price-high":
       return sorted.sort((a, b) => {
-        const aMax = getPriceRange(a).max
-        const bMax = getPriceRange(b).max
-        return bMax - aMax
+        const aRange = getPriceRange(a)
+        const bRange = getPriceRange(b)
+        if (bRange.max !== aRange.max) {
+          return bRange.max - aRange.max
+        }
+        return bRange.min - aRange.min
       })
     case "popularity":
     default:
