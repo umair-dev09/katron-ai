@@ -61,6 +61,7 @@ const NAV_SECTIONS: NavSection[] = [
     icon: <UserCheck className="w-4 h-4" />,
     children: [
       { id: "get-account-details", label: "Get Account Details" },
+      { id: "reissue-token", label: "Reissue API Token" },
       { id: "update-charge-type", label: "Update Charge Type" },
       { id: "fee-preference", label: "Fee Preference" },
     ],
@@ -80,6 +81,7 @@ const NAV_SECTIONS: NavSection[] = [
     icon: <ListOrdered className="w-4 h-4" />,
     children: [
       { id: "list-orders", label: "List All Orders" },
+      { id: "get-order-by-id", label: "Get Order By ID" },
       { id: "get-credentials", label: "Get Credentials" },
       { id: "resend-credentials", label: "Resend Credentials" },
       { id: "refresh-order", label: "Refresh Order" },
@@ -576,6 +578,50 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X GET \\
   "${BASE_URL}/api/merchant/getAccountDetails" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "id": 123,
+    "email": "merchant@example.com",
+    "firstname": "John",
+    "lastname": "Doe",
+    "balance": 1500.00,
+    "giftCardChargeType": "CHARGE_ACCOUNT_BALANCE",
+    "isActive": true,
+    "createdAt": "2026-01-15T08:30:00Z",
+    "updatedAt": "2026-04-20T14:22:00Z"
+  }
+}`} />
+            </section>
+
+            <section id="reissue-token" data-section className="scroll-mt-32 mt-10">
+              <EndpointHeader
+                method="POST"
+                path="/api/merchant/reissueTokenForMerchantApiProfile"
+                title="Reissue API Token"
+                description="Regenerate your merchant API token. The old token will be invalidated immediately and a new one will be sent to your registered email."
+              />
+              <p className="text-sm text-white/50 mb-3">
+                Use this endpoint if your API key has been compromised or you need to rotate credentials.
+                The new token will be delivered to the email address associated with your merchant account.
+              </p>
+              <CodeBlock language="bash" code={`curl -X POST \\
+  "${BASE_URL}/api/merchant/reissueTokenForMerchantApiProfile" \\
+  -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "API key regenerated successfully. New key has been sent to your email.",
+  "data": null
+}`} />
+              <InfoCallout variant="warning">
+                <strong>Important:</strong> After calling this endpoint, your current API key will be <strong>immediately invalidated</strong>.
+                All subsequent requests must use the new token sent to your email.
+              </InfoCallout>
             </section>
 
             <section id="update-charge-type" data-section className="scroll-mt-32 mt-10">
@@ -591,6 +637,13 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X POST \\
   "${BASE_URL}/api/merchant/giftCard/updateMerchantApiProfileGiftCardChargeType?type=CHARGE_ACCOUNT_BALANCE" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Charge type updated successfully",
+  "data": null
+}`} />
             </section>
 
             <section id="fee-preference" data-section className="scroll-mt-32 mt-10">
@@ -780,6 +833,73 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X GET \\
   "${BASE_URL}/api/merchant/giftCard/listAllGiftCardOrders" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Success",
+  "data": [
+    {
+      "id": 5678,
+      "productName": "Amazon Gift Card",
+      "unitPrice": 50.00,
+      "fee": 2.50,
+      "totalPrice": 52.50,
+      "status": "COMPLETED",
+      "recipientEmail": "recipient@example.com",
+      "senderName": "Acme Corp",
+      "createdAt": "2026-04-20T10:30:00Z",
+      "updatedAt": "2026-04-20T10:31:00Z"
+    },
+    {
+      "id": 5679,
+      "productName": "Visa Gift Card",
+      "unitPrice": 100.00,
+      "fee": 3.50,
+      "totalPrice": 103.50,
+      "status": "PENDING",
+      "recipientEmail": "user@example.com",
+      "senderName": "Acme Corp",
+      "createdAt": "2026-04-21T08:15:00Z",
+      "updatedAt": "2026-04-21T08:15:00Z"
+    }
+  ]
+}`} />
+            </section>
+
+            <section id="get-order-by-id" data-section className="scroll-mt-32 mt-10">
+              <EndpointHeader
+                method="GET"
+                path="/api/merchant/giftCard/getGiftCardOrderById?orderId={orderId}"
+                title="Get Order By ID"
+                description="Retrieve detailed information about a specific gift card order."
+              />
+              <ParamTable params={[
+                { name: "orderId", type: "integer (int64)", required: true, description: "The ID of the gift card order to retrieve." },
+              ]} />
+              <CodeBlock language="bash" code={`curl -X GET \\
+  "${BASE_URL}/api/merchant/giftCard/getGiftCardOrderById?orderId=5678" \\
+  -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "id": 5678,
+    "productId": 1234,
+    "productName": "Amazon Gift Card",
+    "unitPrice": 50.00,
+    "fee": 2.50,
+    "totalPrice": 52.50,
+    "status": "COMPLETED",
+    "recipientEmail": "recipient@example.com",
+    "senderName": "Acme Corp",
+    "chargeType": "CHARGE_ACCOUNT_BALANCE",
+    "createdAt": "2026-04-20T10:30:00Z",
+    "updatedAt": "2026-04-20T10:31:00Z"
+  }
+}`} />
             </section>
 
             <section id="get-credentials" data-section className="scroll-mt-32 mt-10">
@@ -795,6 +915,19 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X GET \\
   "${BASE_URL}/api/merchant/giftCard/getGiftCardCredentials?giftCardOrderId=5678" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Success",
+  "data": {
+    "cardNumber": "XXXX-XXXX-XXXX-MNOP",
+    "pin": "123456",
+    "barcodeUrl": "https://cdn.example.com/barcodes/abc123.png",
+    "redemptionUrl": "https://www.example.com/redeem?code=XXXX-XXXX",
+    "expiryDate": "2027-04-20T00:00:00Z"
+  }
+}`} />
               <InfoCallout variant="info">
                 Gift card credentials typically include an activation code, PIN, and/or a redemption URL depending on
                 the card brand. Some cards may take a few moments to be fulfilled — use the <strong>Refresh Order</strong> endpoint
@@ -815,6 +948,13 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X POST \\
   "${BASE_URL}/api/merchant/giftCard/resendGiftCardCredentials?giftCardOrderId=5678" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Gift card credentials resent successfully",
+  "data": null
+}`} />
             </section>
 
             <section id="refresh-order" data-section className="scroll-mt-32 mt-10">
@@ -830,6 +970,19 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X POST \\
   "${BASE_URL}/api/merchant/giftCard/refreshOrder?giftCardOrderId=5678" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Order refreshed successfully",
+  "data": {
+    "id": 5678,
+    "status": "COMPLETED",
+    "productName": "Amazon Gift Card",
+    "unitPrice": 50.00,
+    "updatedAt": "2026-04-20T10:35:00Z"
+  }
+}`} />
             </section>
 
             <section id="refund-order" data-section className="scroll-mt-32 mt-10">
@@ -845,6 +998,13 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X POST \\
   "${BASE_URL}/api/merchant/giftCard/refundOrderPayment?giftCardOrderId=5678" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Order payment refunded successfully",
+  "data": null
+}`} />
               <InfoCallout variant="warning">
                 Refund availability varies by card provider. Some gift cards are non-refundable once fulfilled. The endpoint
                 will return an error if the order is not eligible for a refund.
@@ -864,6 +1024,13 @@ Content-Type: application/json`} />
               <CodeBlock language="bash" code={`curl -X POST \\
   "${BASE_URL}/api/merchant/giftCard/voidOrderPayment?giftCardOrderId=5678" \\
   -H "Authorization: Bearer YOUR_MERCHANT_API_KEY"`} />
+
+              <p className="text-sm text-white/50 mt-4 mb-2"><strong className="text-white/70">Example response:</strong></p>
+              <CodeBlock language="json" code={`{
+  "status": 200,
+  "message": "Order payment voided successfully",
+  "data": null
+}`} />
               <InfoCallout variant="info">
                 Voiding a payment is different from a refund. A void cancels a pending transaction <strong>before</strong> it has fully settled,
                 while a refund reverses a completed transaction. Use void for recent orders that haven&apos;t been processed yet.
